@@ -4,6 +4,7 @@ SafePath is a route recommendation tool that prioritizes safety and comfort over
 
 ## Project structure
 
+```
 SafePath/
 ├── data/
 │   ├── raw/          # Downloaded source files (not tracked in git — see Data Setup)
@@ -12,6 +13,7 @@ SafePath/
 ├── src/              # Reusable Python modules imported by the app and notebooks
 ├── app/              # Streamlit frontend and map display logic
 └── README.md
+```
 
 **`notebooks/`** — Where we explore and validate ideas. Each notebook maps to a sprint week. Messy and experimental by design; once logic is proven here it gets cleaned up and moved to `src/`.
 
