@@ -1,0 +1,10 @@
+.DS_Store
+**/.DS_Store
+
+# Ignore data folder and files
+data/raw/
+data/processed/
+
+# Ignore CSV files
+*.csv
+
