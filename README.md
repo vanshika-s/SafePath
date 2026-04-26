@@ -3,6 +3,8 @@ SafePath is a route recommendation tool that prioritizes safety and comfort over
 
 
 ## Project structure
+
+```
 SafePath/
 ├── data/
 │   ├── raw/          # Downloaded source files (not tracked in git — see Data Setup)
@@ -11,6 +13,7 @@ SafePath/
 ├── src/              # Reusable Python modules imported by the app and notebooks
 ├── app/              # Streamlit frontend and map display logic
 └── README.md
+```
 
 **`notebooks/`** — Where we explore and validate ideas. Each notebook maps to a sprint week. Messy and experimental by design; once logic is proven here it gets cleaned up and moved to `src/`.
 
@@ -75,31 +78,70 @@ Open `notebooks/01_crime_eda.ipynb` and run from the top. All notebooks load dat
 
 After running the preprocessing notebooks, your `data/processed/` folder should contain:
 
-    data/processed/
-      crime_final_gdf.gpkg       # 4,342 geocoded crime points with severity weights and hour
-      walkability_final_gdf.gpkg # 1,794 San Diego block groups with NatWalkInd scores
-      geocode_cache.json         # cached geocoding results — do not delete
+```
+data/processed/
+  crime_final_gdf.gpkg       # geocoded crime points — call type, priority, hour, point geometry
+  walkability_final_gdf.gpkg # San Diego block group polygons with NatWalkInd (1–20)
+  geocode_cache.json         # cached geocoding results — do not delete
+```
 
-## what's next
+## How the preprocessed data feeds into the next steps
 
-With both processed datasets ready, the next step builds the safety scoring algorithm
-by loading the San Diego street network and assigning scores directly to street edges.
+Both preprocessing notebooks produce GeoPackage files that serve as the inputs for the safety scoring and routing stages.
 
-    crime_final_gdf.gpkg              walkability_final_gdf.gpkg
-    (4,342 geocoded crime points)     (1,794 block groups with NatWalkInd)
-            ↓                                  ↓
-            For each street edge in the OSMnx walking network:
-                1. Draw a 50m buffer around the edge
-                2. Count crime points inside the buffer
-                   → weight by severity (call type) and time of day (day vs night)
-                   → crime_score_day and crime_score_night per edge
-                3. Spatial join edge to block group
-                   → get NatWalkInd → walkability_score per edge
-                4. Combine into one safety_score per edge
-                   → normalize both scores to 0–1 scale
-                   → safety_score = w1 * crime_score + w2 * walkability_score
-            ↓
-            Save scored edge network → used by Week 4 routing engine
+### `crime_final_gdf.gpkg` — geocoded crime points
+
+Each row is a confirmed pedestrian-relevant incident filtered down from SDPD calls for service. Only calls with a confirmed outcome (arrest, report taken, or officer action) and a call type that directly affects pedestrian safety are kept — covering violent crimes (assault, robbery, ADW), active threats (weapons, criminal threats, stalking), public safety hazards (narcotics, hazardous conditions, bomb threats), and in-progress incidents (burglary, foot pursuit). Each row has an exact lat/lon point geometry, the original call type, priority level, and hour of day.
+
+In the scoring step this feeds in as:
+
+- **Crime density per street edge** — a 50m buffer is drawn around each edge in the OSMnx walking network and all crime points inside are counted. A street with 15 incidents in its buffer scores higher than one with 2, directly reflecting how much confirmed criminal activity occurred near that stretch.
+- **Severity weighting** — not all crimes count equally. Call types are assigned a severity weight so that a single robbery or ADW contributes more to the score than a trespassing or public intoxication incident. Priority level from the SDPD dispatch system (0 = immediate life threat, 4 = non-urgent) is also factored in, meaning high-priority calls raise the score more than low-priority ones even within the same call type.
+- **Time-of-day split** — `HOUR` is used to produce separate `crime_score_day` and `crime_score_night` values per edge, since the same street can feel very different at 2pm vs 2am. A block with most incidents after dark gets a higher night score without penalizing its daytime score.
+
+### `walkability_final_gdf.gpkg` — block group walkability polygons
+
+Each row is a Census block group polygon with a `NatWalkInd` score (1–20) from the EPA Smart Location Database. `NatWalkInd` is a composite index built from four sub-measures of the built environment:
+
+- **D3B — Street intersection density** (weight 1/3): counts pedestrian-oriented intersections per square mile, excluding auto-only ramps. Higher intersection density means a more connected, grid-like street network where walkers have more route options and shorter blocks.
+- **D4A — Distance to nearest transit stop** (weight 1/3): measures proximity to bus and rail stops from the block group's population-weighted centroid. Block groups with no transit access receive the lowest rank.
+- **D2A — Employment and household entropy** (weight 1/6): measures land use mix by combining the diversity of jobs and housing in an area. Mixed-use areas with both residents and employers are more walkable than purely residential or purely commercial zones.
+- **D2B — 8-tier employment entropy** (weight 1/6): measures diversity of job types (retail, office, service, industrial, entertainment, education, healthcare, public administration). Areas with varied employment types generate foot traffic throughout the day.
+
+Each sub-measure is ranked 1–20 by national quantile and combined using the weights above, giving a final score where 1–5.75 is least walkable and 15.26–20 is most walkable.
+
+In the scoring step this feeds in as:
+
+- **Walkability score per street edge** — each edge is spatially joined to the block group it falls inside to inherit its `NatWalkInd` score
+- **Baseline pedestrian infrastructure signal** — independent of crime, this captures whether the physical environment supports walking. A low-crime street in a poorly connected area with no transit still scores lower than a well-connected, transit-accessible street, pushing routes toward areas that are both safe and built for pedestrians
+
+### The street network — OSM nodes and edges
+
+Before scoring can happen, we need a map of every walkable street segment in San Diego. We get this from OpenStreetMap (OSM) via the OSMnx library, which downloads the city's walking network as a graph.
+
+The graph has two components:
+
+- **Nodes** are intersections and dead ends — any point where two or more streets meet, or where a street terminates. Each node has a lat/lon coordinate.
+- **Edges** are the individual street segments that connect two nodes. A single block between two intersections is one edge. Each edge has attributes like length, street name, and highway type.
+
+Every edge is what we actually score. A pedestrian walking from A to B travels along a sequence of edges, so the safety of the route is the sum of the safety scores of the edges it uses.
+
+### Combined into a safety score
+
+```
+crime_final_gdf.gpkg              walkability_final_gdf.gpkg
+(geocoded crime points)           (block groups with NatWalkInd)
+        ↓                                  ↓
+        For each street edge in the OSMnx walking network:
+            1. Buffer 50m → count + weight nearby crime points
+               → crime_score_day and crime_score_night
+            2. Spatial join to block group → NatWalkInd
+               → walkability_score
+            3. Normalize both to 0–1 scale
+               → safety_score = w1 * crime_score + w2 * walkability_score
+        ↓
+        Scored edge network → input to the routing engine (Dijkstra / A*)
+```
 
 ## Reference documents
 
