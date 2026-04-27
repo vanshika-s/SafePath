@@ -70,13 +70,38 @@ Inside your cloned repo, create the following folders if they don't already exis
         tl_2020_06_bg.shp
         tl_2020_06_bg.shx
 
-### Step 4 — You're ready
+### Step 4 — Run the preprocessing notebooks
 
-Open `notebooks/01_crime_eda.ipynb` and run from the top. All notebooks load data from `data/raw/` and save cleaned outputs to `data/processed/`.
+**Crime data**
+
+Open `notebooks/crime-df-preprocessing.ipynb` and run from the top. This filters the SDPD calls for service down to pedestrian-relevant incidents, geocodes each address to an exact lat/lon coordinate, and saves the result to `data/processed/`.
+
+The geocoding step contacts Nominatim (OpenStreetMap's free geocoder) once per unique address and stores the result in `data/processed/geocode_cache.json`. The cache means you only ever geocode each address once — if you stop and re-run, it picks up where it left off and skips anything already looked up. Do not delete this file.
+
+When the notebook finishes, `data/processed/` will contain:
+
+```
+data/processed/
+  crime_final_gdf.gpkg   # geocoded crime points — call type, priority, hour, point geometry
+  geocode_cache.json     # Nominatim results keyed by address — do not delete
+```
+
+**Walkability data**
+
+Open `notebooks/walkability-df-preprocessing.ipynb` and run from the top. This filters the EPA Smart Location Database down to San Diego block groups, merges in the Census TIGER polygon boundaries to give each block group a geographic shape, and saves the result to `data/processed/`.
+
+When the notebook finishes, `data/processed/` will also contain:
+
+```
+data/processed/
+  walkability_final_gdf.gpkg  # San Diego block group polygons with NatWalkInd (1–20)
+```
+
+Both notebooks must be run before moving on to the scoring step.
 
 ## Processed outputs
 
-After running the preprocessing notebooks, your `data/processed/` folder should contain:
+After running both preprocessing notebooks, your `data/processed/` folder should contain:
 
 ```
 data/processed/
