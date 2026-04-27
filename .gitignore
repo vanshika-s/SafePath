@@ -1,0 +1,13 @@
+.DS_Store
+**/.DS_Store
+
+# VSCode settings
+.vscode/
+
+# Ignore data folder and files
+data/raw/
+data/processed/
+
+# Ignore CSV files
+*.csv
+
