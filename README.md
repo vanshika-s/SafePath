@@ -9,11 +9,16 @@ SafePath/
 ├── data/
 │   ├── raw/          # Downloaded source files (not tracked in git — see Data Setup)
 │   └── processed/    # Cleaned and merged outputs ready for modeling
+├── docs/             # External reference documents tracked in git
 ├── notebooks/        # Exploratory analysis and sprint-by-sprint prototyping
 ├── src/              # Reusable Python modules imported by the app and notebooks
 ├── app/              # Streamlit frontend and map display logic
 └── README.md
 ```
+
+**`data/`** — Not tracked in git due to file size. Raw source files go in `data/raw/` and cleaned outputs saved by the notebooks go in `data/processed/`. See Data Setup below.
+
+**`docs/`** — External reference documents that are small enough to track in git. Contains the SDPD call type code list, disposition code definitions, and dispatch priority definitions used to interpret and filter the crime dataset. Tracked so everyone on the team has the same reference material without needing to download it separately.
 
 **`notebooks/`** — Where we explore and validate ideas. Each notebook maps to a sprint week. Messy and experimental by design; once logic is proven here it gets cleaned up and moved to `src/`.
 

@@ -4,10 +4,10 @@
 # VSCode settings
 .vscode/
 
-# Ignore data folder and files
-data/raw/
-data/processed/
+# Ignore all data files
+data/
 
-# Ignore CSV files
+# Ignore CSV files everywhere except docs/
 *.csv
+!docs/*.csv
 
