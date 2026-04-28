@@ -8,7 +8,7 @@ SafePath is a route recommendation tool that prioritizes safety and comfort over
 SafePath/
 ├── data/
 │   ├── raw/          # Downloaded source files (not tracked in git — see Data Setup)
-│   └── processed/    # Cleaned and merged outputs ready for modeling
+│   └── processed/    # Cleaned and merged outputs ready for modeling (not tracked in git — see Data Setup)
 ├── docs/             # External reference documents tracked in git
 ├── notebooks/        # Exploratory analysis and sprint-by-sprint prototyping
 ├── src/              # Reusable Python modules imported by the app and notebooks
@@ -16,7 +16,7 @@ SafePath/
 └── README.md
 ```
 
-**`data/`** — Not tracked in git due to file size. Raw source files go in `data/raw/` and cleaned outputs saved by the notebooks go in `data/processed/`. See Data Setup below.
+**`data/`** — Not tracked in git due to file size. Raw source files go in `data/raw/` and preprocessed outputs go in `data/processed/`. See Data Setup below for how to get them.
 
 **`docs/`** — External reference documents that are small enough to track in git. Contains the SDPD call type code list, disposition code definitions, and dispatch priority definitions used to interpret and filter the crime dataset. Tracked so everyone on the team has the same reference material without needing to download it separately.
 
@@ -36,7 +36,9 @@ SafePath/
 
 ## Data setup
 
-Raw data files are not tracked in git due to file size. Follow these steps to set up your local data folder before running any notebooks.
+The preprocessed files are provided directly — you do not need to download the raw datasets or run the preprocessing notebooks yourself.
+
+**Why we do it this way:** The crime preprocessing notebook geocodes tens of thousands of unique addresses through Nominatim (OpenStreetMap's free geocoder), which rate-limits requests to one per second. Running it from scratch takes several hours. The raw files are also large (the SDPD CSV alone is several hundred MB) and require accounts on separate platforms (the City of San Diego open data portal, Kaggle, and the Census FTP). Sharing the already-cleaned outputs through Google Drive skips all of that — you get the same three files the notebooks would have produced, without the wait or the setup friction.
 
 ### Step 1 — Create the folder structure
 
@@ -44,27 +46,51 @@ Inside your cloned repo, create the following folders if they don't already exis
 
     SafePath/
     └── data/
-        ├── raw/        ← all downloaded files go here
-        └── processed/  ← cleaned outputs saved by notebooks go here
+        └── processed/  ← download destination
 
-### Step 2 — Download each dataset
+### Step 2 — Download the preprocessed files
 
-**SD Police Calls for Service**
+Open the shared Google Drive folder:
+
+**https://drive.google.com/drive/folders/1DSxQlvn6lq-D_tax9uDd42b5rNIIyQQ8?usp=sharing**
+
+Download all three files and place them in `data/processed/`:
+
+- `crime_final_gdf.gpkg`
+- `walkability_final_gdf.gpkg`
+- `geocode_cache.json`
+
+### Step 3 — Verify your folder looks like this
+
+    data/processed/
+      crime_final_gdf.gpkg
+      walkability_final_gdf.gpkg
+      geocode_cache.json
+
+You're done. The scoring and routing notebooks read directly from `data/processed/` and will work as-is.
+
+### Optional — Run the preprocessing yourself from raw data
+
+If you want to reproduce the processed files from scratch (e.g. to update the crime data to a newer year), follow these steps instead of downloading from Google Drive.
+
+**Download each raw dataset**
+
+*SD Police Calls for Service*
 1. Go to https://data.sandiego.gov/datasets/police-calls-for-service/
 2. Download the CSV for the most recent year available
 3. Save to `data/raw/pd_calls_for_service_YYYY_datasd.csv`
 
-**U.S. Walkability Index**
+*U.S. Walkability Index*
 1. Go to https://www.kaggle.com/datasets/stacey06/u-s-walkability-index
-2. Download the CSV (requires free Kaggle account)
+2. Download the CSV (requires a free Kaggle account)
 3. Save to `data/raw/EPA_SmartLocationDatabase_V3_Jan_2021_Final.csv`
 
-**Census TIGER Block Group Shapefile**
+*Census TIGER Block Group Shapefile*
 1. Go to https://www2.census.gov/geo/tiger/TIGER2020/BG/tl_2020_06_bg.zip
 2. Download and unzip the file
 3. Save all unzipped files to `data/raw/tl_2020_06_bg/`
 
-### Step 3 — Verify your folder looks like this
+Your `data/raw/` folder should look like this:
 
     data/raw/
       pd_calls_for_service_YYYY_datasd.csv
@@ -75,34 +101,13 @@ Inside your cloned repo, create the following folders if they don't already exis
         tl_2020_06_bg.shp
         tl_2020_06_bg.shx
 
-### Step 4 — Run the preprocessing notebooks
+**Run the preprocessing notebooks**
 
-**Crime data**
+Open `notebooks/crime-df-preprocessing.ipynb` and run from the top. This filters the SDPD calls for service down to pedestrian-relevant incidents, geocodes each address to an exact lat/lon coordinate, and saves the result to `data/processed/`. The geocoding step contacts Nominatim once per unique address and caches results in `geocode_cache.json` — do not delete this file, as it lets you resume without re-geocoding addresses already looked up. Expect this step to take several hours on first run.
 
-Open `notebooks/crime-df-preprocessing.ipynb` and run from the top. This filters the SDPD calls for service down to pedestrian-relevant incidents, geocodes each address to an exact lat/lon coordinate, and saves the result to `data/processed/`.
+Then open `notebooks/walkability-df-preprocessing.ipynb` and run from the top. This filters the EPA Smart Location Database down to San Diego block groups, merges in the Census TIGER polygon boundaries, and saves the result to `data/processed/`.
 
-The geocoding step contacts Nominatim (OpenStreetMap's free geocoder) once per unique address and stores the result in `data/processed/geocode_cache.json`. The cache means you only ever geocode each address once — if you stop and re-run, it picks up where it left off and skips anything already looked up. Do not delete this file.
-
-When the notebook finishes, `data/processed/` will contain:
-
-```
-data/processed/
-  crime_final_gdf.gpkg   # geocoded crime points — call type, priority, hour, point geometry
-  geocode_cache.json     # Nominatim results keyed by address — do not delete
-```
-
-**Walkability data**
-
-Open `notebooks/walkability-df-preprocessing.ipynb` and run from the top. This filters the EPA Smart Location Database down to San Diego block groups, merges in the Census TIGER polygon boundaries to give each block group a geographic shape, and saves the result to `data/processed/`.
-
-When the notebook finishes, `data/processed/` will also contain:
-
-```
-data/processed/
-  walkability_final_gdf.gpkg  # San Diego block group polygons with NatWalkInd (1–20)
-```
-
-Both notebooks must be run before moving on to the scoring step.
+Both notebooks must finish before moving on to the scoring step.
 
 ## Processed outputs
 

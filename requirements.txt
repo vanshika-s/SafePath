@@ -1,0 +1,21 @@
+# Core data handling
+pandas          # tabular data loading, filtering, and transformation
+numpy           # numerical operations used throughout scoring and preprocessing
+
+# Geospatial
+geopandas       # spatial DataFrames — reads .gpkg/.shp files, spatial joins, reprojection
+shapely         # geometry primitives (points, polygons, buffers) used by GeoPandas under the hood
+pyproj          # coordinate reference system transformations required by GeoPandas/Shapely
+fiona           # file I/O backend for GeoPandas (.shp, .gpkg read/write)
+osmnx           # downloads and models the OpenStreetMap walking network as a graph
+networkx        # graph data structure and pathfinding (Dijkstra/A*) used by OSMnx and the router
+
+# Geocoding
+geopy           # Nominatim geocoder — converts street addresses to lat/lon coordinates
+
+# Visualization (notebooks)
+matplotlib      # base plotting library used in exploratory notebooks
+seaborn         # statistical visualizations built on top of matplotlib
+
+# App
+streamlit       # web UI framework for the SafePath frontend
