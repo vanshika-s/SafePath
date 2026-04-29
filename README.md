@@ -117,14 +117,12 @@ The first three call-type/disposition/priority files are also bundled in `docs/`
 
 ## Where to read more
 
-- [`docs/methodology.md`](docs/methodology.md) : full technical pipeline, scoring math, edge attributes, GeoPandas walkthrough.
+- [`docs/methodology.md`](docs/methodology.md) : scoring assumptions, route-cost formula, route modes, and limitations.
 - [`docs/status/`](docs/status/) : short weekly status files, one per week. Read the most recent one to see what is in flight.
 - [`notebooks/`](notebooks/) Notebooks themselves : the markdown cells inside `notebooks/crime-df-preprocessing.ipynb` and `notebooks/walkability-df-preprocessing.ipynb` document each preprocessing decision in context.
 
-## Where to read more
+## Where to read even more
 
-- `docs/pipeline.md` — how data moves from typed address to displayed route.
-- `docs/methodology.md` — scoring assumptions, route-cost formula, route modes, and limitations.
-- `docs/preprocessing.md` — how processed data files were created and how to validate them.
-- `docs/status/` — weekly status files showing what is done and what is next.
-- `notebooks/` — preprocessing notebooks and exploratory work.
+- [`docs/pipeline.md`](docs/pipeline.md) : how data moves from typed address to displayed route.
+- [`docs/preprocessing.md`](docs/pipeline.md) : how processed data files were created and how to validate them.
+
