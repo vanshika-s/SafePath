@@ -8,7 +8,7 @@ The technical pieces below all exist to answer questions a user might actually a
 
 (TBD)
 
-| User question                                                       | What in the pipeline answers it                                                |
+| User question                                                       | What in the pipeline answers it (example)                                      |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | "Will this route feel isolated?"                                    | Walkability score per edge (NatWalkInd from the EPA index) — captures how connected and pedestrian-active the neighborhood is. |
 | "Is this route worth the extra walking time?"                       | Balanced cost = length × (1 + 4·(1 − safety_score)) — exposes the tradeoff explicitly. |
@@ -238,6 +238,9 @@ In SafePath, GeoPandas does four things plain pandas cannot:
 **3. Spatial joins.** `gpd.sjoin(edges_gdf, walkability_gdf, how="left", predicate="intersects")` joins two datasets by *geographic overlap* rather than a shared key column.
 
 **4. Geometry operations.** `contains`, `intersects`, `within`, `buffer` (e.g. 50m around an edge), and `.area` are all built in. Without GeoPandas, all of this would mean writing geometry math from scratch on top of Shapely.
+
+
+Reference: https://docs.google.com/document/d/1y2eViHtmPmksf7rXS3IgglXV2l2p_o8H/edit?usp=sharing&ouid=102290811200605502736&rtpof=true&sd=true
 
 ## Optional — rerun from raw data
 
