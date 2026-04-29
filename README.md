@@ -3,7 +3,7 @@
 <<<<<<< HEAD
 > **TL;DR.** SafePath recommends walking routes in San Diego that feel safer and more comfortable, not just the fastest. We score every street segment using crime, walkability, lighting, and bike lane data, then pick three routes (fastest, safest, balanced) and explain why.
 
-[![Status](https://img.shields.io/badge/status-active--development-yellow)](docs/status.md) [![Docs](https://img.shields.io/badge/docs-5_step_path-blue)](docs/00_project_map.md) [![Course](https://img.shields.io/badge/DS3-Spring_2026-purple)](https://ds3.ucsd.edu)
+[![Status](https://img.shields.io/badge/status-active--development-yellow)](docs/status.md) [![Docs](https://img.shields.io/badge/docs-5_step_path-blue)](docs/00_project_map.md) [![Course](https://img.shields.io/badge/DS3-Spring_2026-purple)](https://www.ds3atucsd.com)
 =======
 SafePath recommends walking routes in San Diego based on safety and comfort, not only speed. It is for people who feel vulnerable walking alone: students, women, anyone walking at night or in unfamiliar areas. Users enter a start and destination, pick a preference (fastest, safest, balanced), and get a route with a plain explanation of why it scored that way.
 
@@ -15,7 +15,7 @@ This is a quarter long student data science project (DS3 at UC San Diego). It us
 <<<<<<< HEAD
 A route recommendation tool aimed at people who feel vulnerable walking alone. Students, women, anyone walking at night or in unfamiliar areas. The user enters a start and a destination, picks a preference (fastest, safest, balanced), and gets a route plus a plain English explanation of why it scored that way.
 
-This is a quarter long student data science project run through [DS3 at UC San Diego](https://ds3.ucsd.edu).
+This is a quarter long student data science project run through [DS3 at UC San Diego](https://[https://www.ds3atucsd.com]).
 
 ## Start here (read in this order)
 =======
