@@ -1,4 +1,4 @@
-# SafePath methodology
+# SafePath methodology, to be edited
 
 This is the long-form companion to the README. It explains how the data flows from a typed-in address to a route line on the map, what each step is doing, and why. If you want the quick version, the README's "Quick start" + "Data setup" sections are enough to get going. Come here when you want to actually understand or extend the pipeline.
 
