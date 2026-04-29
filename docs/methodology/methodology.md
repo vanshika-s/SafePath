@@ -1,172 +1,269 @@
 # SafePath Methodology
 
-This document describes the planned SafePath scoring and routing methodology. The cleaned crime and walkability datasets are ready. The next step is to assign scores to street segments, build routes, and connect the results to the app.
-
-For project setup and data download instructions, use `README.md`. For weekly progress and next tasks, use `docs/status/`. For how the cleaned data files were created and how to validate them, use `docs/preprocessing.md`.
-
 ## Purpose of this document
 
-This file explains the technical design behind SafePath's route recommendation pipeline. It focuses on the planned logic for turning processed data into scored street segments and route recommendations.
+This document explains the planned scoring and routing methodology for SafePath.
 
-It is not meant to be:
+It focuses on the question:
 
-- a setup guide
-- a weekly status update
-- a raw data download guide
-- a full GeoPandas tutorial
+```text
+How should SafePath decide which walking route is safer or more comfortable?
+```
+
+This file is future-facing. The cleaned crime and walkability datasets are ready, and the next step is to turn those processed files into edge-level scores, route costs, and user-facing route explanations.
+
+Use this file for scoring logic, assumptions, and limitations.
+
+Use other files for other purposes:
+
+- `README.md`: project overview, setup, and data download
+- `docs/status/`: weekly progress and blockers
+- `docs/pipeline.md`: beginner-friendly backend-to-frontend pipeline
+- `docs/preprocessing.md`: how processed data files were created and how to validate them
+
+---
 
 ## Core idea
 
-SafePath does not score an entire route all at once. It scores each street segment first.
+SafePath does not score an entire route all at once.
 
-A street segment is an edge in the OpenStreetMap walking network. Each edge receives feature values such as nearby crime risk and walkability. After every edge has a score, a route can be evaluated by adding up the edge costs along the path.
+Instead, SafePath scores each **street edge** first. A street edge is one walkable street segment between two graph nodes, usually intersections or path endpoints.
 
-In simple terms:
-
-```text
-street edge features → edge safety score → edge route cost → full route recommendation
-```
-
-This structure matters because route algorithms such as Dijkstra need one cost value per edge. SafePath's job is to convert multiple safety and comfort signals into that one edge cost.
-
-## Planned pipeline
+A route is then evaluated by adding up the costs of the edges along that path.
 
 ```text
-user enters start and destination
-  ↓
-geocode addresses into coordinates
-  ↓
-snap coordinates to nearest OpenStreetMap walking nodes
-  ↓
-load the San Diego walking network
-  ↓
-assign crime and walkability features to each street edge
-  ↓
-calculate an edge-level safety score
-  ↓
-convert safety score into route cost
-  ↓
-generate fastest, safest, and balanced routes
-  ↓
-return route geometry and plain-language explanation to the app
+street edge features → edge safety score → edge route cost → full route cost
 ```
 
-## Unit of analysis: street edges
+This design matters because routing algorithms, such as Dijkstra's algorithm in `networkx`, choose routes by comparing edge weights.
 
-The main object in the pipeline is the street edge.
+---
 
-- A node is an intersection, dead end, or connection point in the walking network.
-- An edge is the walkable street segment between two nodes.
-- A route is a sequence of edges.
+## Unit of analysis: street edge
 
-Because a route is made of edges, SafePath should attach safety and comfort information to each edge before routing.
+The central object in SafePath is the **street edge**.
 
-## Inputs used by the scoring pipeline
+Each edge should eventually have:
 
-### `crime_final_gdf.gpkg`
+| Attribute | Meaning |
+|---|---|
+| `length` | physical length of the street segment |
+| `crime_count` | number of relevant crime incidents near the edge |
+| `walk_score` | walkability score inherited from the block group |
+| `safety_score` | normalized combined safety score |
+| `safety_cost` | distance adjusted by safety |
+| `balanced_cost` | optional blend of distance and safety |
 
-This processed file contains geocoded crime-related points from SDPD Calls for Service. Each row represents an incident that passed the cleaning and filtering process.
+The main methodological choice is how to turn several imperfect safety signals into one route cost.
 
-Planned use in scoring:
+---
 
-- count nearby incidents around each street edge
-- optionally weight incidents by severity or priority
-- optionally separate day and night risk if the app asks for time of day later
+## Inputs used for scoring
 
-### `walkability_final_gdf.gpkg`
+### 1. Crime signal
 
-This processed file contains San Diego Census block group polygons with EPA `NatWalkInd` scores.
+Source file:
 
-Planned use in scoring:
+```text
+data/processed/crime_final_gdf.gpkg
+```
 
-- assign each street edge a walkability score based on the block group it falls inside
-- use walkability as a comfort and pedestrian environment signal
-- keep this separate from crime risk so the explanation can say whether a route is recommended because of lower incidents, better walkability, or both
+This file contains geocoded crime or incident points from SDPD Calls for Service after filtering.
 
-### OpenStreetMap walking network
+Planned use:
 
-SafePath will use OSMnx to load the San Diego walking network. The network provides nodes, edges, street lengths, and available OSM attributes.
+- Count nearby incidents within a buffer around each street edge.
+- Optionally weight incidents by severity.
+- Optionally split scores by time of day if the app asks when the user is walking.
 
-Planned use in scoring:
+Interpretation:
 
-- route through real walkable paths instead of straight lines
-- use edge length as the base cost
-- optionally use available OSM attributes such as road type, sidewalk, or lighting tags if they are reliable enough
+A higher nearby crime count means the edge should be treated as less safe.
+
+Important caution:
+
+SDPD Calls for Service are not the same as all crime that happened. Some incidents are underreported, and some calls may not represent confirmed crime.
+
+---
+
+### 2. Walkability signal
+
+Source file:
+
+```text
+data/processed/walkability_final_gdf.gpkg
+```
+
+This file contains Census block group polygons with EPA `NatWalkInd` scores.
+
+Planned use:
+
+- Find the midpoint of each street edge.
+- Check which block group polygon contains that midpoint.
+- Assign that block group's `NatWalkInd` score to the edge.
+
+Interpretation:
+
+Higher walkability suggests the area may be more pedestrian-friendly, connected, and active.
+
+Important caution:
+
+Walkability is a proxy for comfort. It does not directly measure whether a person feels safe.
+
+---
+
+### 3. OpenStreetMap signal
+
+Source:
+
+```text
+OpenStreetMap walking network from osmnx
+```
+
+Potential edge attributes:
+
+- `length`
+- `highway`
+- `name`
+- `lit`
+- `sidewalk`
+
+Planned use:
+
+- `length` is always needed for routing.
+- Other OSM attributes may be used if coverage is good enough.
+
+Important caution:
+
+Some OSM attributes are sparse or inconsistent. For example, many streets may have missing `lit` values.
+
+---
+
+### 4. Future comfort signals
+
+Future datasets may be added if the team decides they are useful and trustworthy.
+
+Examples:
+
+- streetlight point data
+- real-time construction or closure data
+- user feedback
+- campus-specific safety infrastructure
+
+These should only be added after the team documents:
+
+1. what the dataset measures
+2. how it maps to edges
+3. how missing values are handled
+4. whether it actually improves the recommendation
+
+---
 
 ## Edge-level feature construction
 
-Each edge should receive a small set of interpretable features. The first version should stay simple enough for the team to validate.
-
 ### Crime feature
 
-For each edge, draw a buffer around the street segment and count crime points inside the buffer.
-
-Planned first version:
+Planned approach:
 
 ```text
-crime_count = number of crime points within 50 meters of the edge
+For each edge:
+  draw a 50 meter buffer around the edge
+  count crime points inside the buffer
+  assign the count to the edge
 ```
 
-Possible later version:
+Possible feature names:
 
 ```text
-crime_risk = weighted count using call type severity, priority, and time of day
+crime_count
+crime_score
+crime_score_day
+crime_score_night
 ```
 
-Important note: if a left spatial join is used, make sure unmatched edges count as zero incidents, not one missing row.
+Basic version:
+
+```text
+crime_count = number of relevant incidents within 50 meters
+```
+
+More advanced version:
+
+```text
+crime_risk = weighted count using call type severity and priority level
+```
+
+Decision still needed:
+
+```text
+Should SafePath use raw counts, severity-weighted counts, or time-specific counts?
+```
+
+---
 
 ### Walkability feature
 
-For each edge, find the midpoint of the street segment. Then assign the `NatWalkInd` score from the block group polygon containing that midpoint.
-
-Planned first version:
+Planned approach:
 
 ```text
-walkability_raw = NatWalkInd value for the edge midpoint's block group
+For each edge:
+  find the midpoint
+  spatially join the midpoint to a walkability polygon
+  assign the polygon's NatWalkInd value to the edge
 ```
 
-Because `NatWalkInd` is on a 1 to 20 scale, it should be normalized before combining with other features.
-
-### Optional comfort features
-
-These can be added only after the first crime and walkability pipeline works.
-
-Possible examples:
-
-- lighting coverage
-- sidewalk availability
-- road type
-- user-selected time of day
-- user-selected preference for safety versus distance
-
-These should not block the first scoring prototype.
-
-## Draft scoring logic
-
-The exact feature weights are not final yet. The first version should prioritize clarity and validation over complexity.
-
-### Step 1: normalize each feature
-
-Each feature should be converted to a 0 to 1 score where:
+Possible feature names:
 
 ```text
-1 = better / safer / more comfortable
-0 = worse / less safe / less comfortable
+walk_score
+walkability_score
 ```
 
-Example directions:
+Basic version:
 
-| Feature | Raw meaning | Normalized direction |
-|---|---|---|
-| `crime_count` | More nearby incidents | Higher should become worse, so invert after normalization |
-| `walkability_raw` | Higher `NatWalkInd` | Higher should stay better |
-| `lighting_score` | Better lighting, if added | Higher should stay better |
+```text
+walk_score = NatWalkInd for the block group containing the edge midpoint
+```
 
-### Step 2: combine normalized features
+Decision still needed:
 
-Use a weighted average of available features.
+```text
+Should NatWalkInd be used directly, or should it be normalized against San Diego only?
+```
 
-Draft placeholder:
+---
+
+### Missing values
+
+The scoring logic must handle missing values clearly.
+
+Possible rules:
+
+| Missing input | Possible handling |
+|---|---|
+| missing crime count | treat as 0 only if spatial join is valid |
+| missing walkability score | assign neutral default or nearest polygon |
+| missing OSM lighting | treat as unknown, not automatically dark |
+| missing sidewalk tag | treat as unknown unless coverage is reliable |
+
+Important principle:
+
+```text
+Unknown should not always mean unsafe, but it also should not always mean safe.
+```
+
+---
+
+## Draft safety score
+
+Each edge receives a normalized safety score from 0 to 1.
+
+```text
+1 = safest or most comfortable
+0 = least safe or least comfortable
+```
+
+A simple draft structure:
 
 ```text
 safety_score = weighted average of normalized feature scores
@@ -175,98 +272,200 @@ safety_score = weighted average of normalized feature scores
 Example only, not final:
 
 ```text
-safety_score = 0.60 × crime_score + 0.40 × walkability_score
+safety_score =
+  w_crime × crime_score
++ w_walkability × walkability_score
++ w_lighting × lighting_score
++ w_sidewalk × sidewalk_score
 ```
 
-The team still needs to decide the final weights. Until then, the code should make weights easy to change.
+Where the weights add up to 1.
 
-### Step 3: convert safety score into route cost
+The team still needs to decide the actual weights.
+
+---
+
+## Normalizing feature scores
+
+Because the inputs use different scales, they need to be converted to comparable 0 to 1 scores.
+
+### Crime
+
+Raw crime counts are "higher is worse," so the normalized score should reverse the direction.
+
+Example idea:
 
 ```text
-route_cost = length × (1 + 4 × (1 − safety_score))
+crime_score = 1 − normalized_crime_count
 ```
 
-Plain-English meaning:
+Meaning:
 
-- A very safe edge has a cost close to its real walking length.
-- A less safe edge becomes more expensive.
-- A very unsafe edge can cost up to 5 times its length.
-- This pushes the routing algorithm away from risky edges without completely banning them.
+```text
+higher crime count → lower crime_score
+```
 
-This is useful because the route algorithm still receives one number per edge.
+### Walkability
 
-## Route types
+EPA `NatWalkInd` ranges from 1 to 20, where higher generally means more walkable.
+
+Example idea:
+
+```text
+walkability_score = (NatWalkInd − 1) / 19
+```
+
+Meaning:
+
+```text
+higher NatWalkInd → higher walkability_score
+```
+
+### Lighting and sidewalks
+
+If OSM lighting or sidewalk data is used, it should be encoded carefully.
+
+Example idea:
+
+| Raw value | Possible score |
+|---|---:|
+| `lit = yes` | 1.0 |
+| `lit = no` | 0.0 |
+| `lit = unknown` | 0.5 |
+
+Do not use these values as final without checking data coverage.
+
+---
+
+## Route cost formula
+
+After calculating `safety_score`, convert it into a route cost.
+
+Draft formula:
+
+```text
+safety_cost = length × (1 + 4 × (1 − safety_score))
+```
+
+Plain English:
+
+- If an edge is very safe, its cost is close to its real length.
+- If an edge is very unsafe, its cost can become up to five times its length.
+- This makes the routing algorithm avoid unsafe edges unless the detour is too large.
+
+Example:
+
+| Edge length | Safety score | Safety cost |
+|---:|---:|---:|
+| 100 m | 1.0 | 100 m |
+| 100 m | 0.5 | 300 m |
+| 100 m | 0.0 | 500 m |
+
+---
+
+## Route modes
 
 SafePath should eventually return three route options.
 
-| Route type | Edge weight used | Meaning |
+| Route mode | Edge weight | Meaning |
 |---|---|---|
-| Fastest | `length` | Shortest walking route, ignoring safety score |
-| Safest | `route_cost` or `safety_cost` | Route that avoids high-cost edges, even if longer |
-| Balanced | blend of `length` and `safety_cost` | Compromise between distance and safety |
+| Fastest | `length` | shortest walking route |
+| Safest | `safety_cost` | route that avoids risky edges most strongly |
+| Balanced | `balanced_cost` | tradeoff between distance and safety |
 
-Possible balanced formula:
+A possible balanced formula:
 
 ```text
-balanced_cost = α × normalized_length + (1 − α) × normalized_safety_cost
+balanced_cost = α × length + (1 − α) × safety_cost
 ```
 
-The team should choose `α` based on how much extra distance feels acceptable for a safer route.
+Where:
 
-## User-facing explanation
+```text
+α closer to 1 = more distance-focused
+α closer to 0 = more safety-focused
+```
 
-SafePath should not only return a route. It should explain why the route was recommended.
+Decision still needed:
 
-The app should eventually show:
+```text
+What alpha value should SafePath use for the balanced route?
+```
 
-- route map
-- route type: fastest, safest, or balanced
-- distance or estimated walking time
-- overall route safety or comfort score
-- short explanation of the main reason the route was chosen
-- optional per-segment breakdown for crime and walkability
+---
 
-Example explanation:
+## User-facing explanation logic
 
-> The safest route is longer than the fastest route, but it avoids several segments with higher nearby incident counts and stays mostly in more walkable block groups.
+SafePath should not only show a route. It should explain why that route was recommended.
 
-The explanation should stay plain-language. Users should not need to understand GeoPandas, OSMnx, or Dijkstra to understand the recommendation.
+Possible explanation outputs:
 
-## Validation questions for scoring
+- total distance
+- estimated walking time
+- route safety score
+- number of high-risk segments avoided
+- route tradeoff compared with fastest route
+- per-segment breakdown
 
-Before treating the route output as trustworthy, the team should test a few routes manually.
+Example plain-language explanation:
 
-Useful checks:
+```text
+The safest route is 7 minutes longer than the fastest route, but it avoids several segments with higher nearby incident counts and passes through more walkable block groups.
+```
 
-- Does the fastest route look like a normal shortest walking route?
-- Does the safest route avoid edges with high nearby crime counts?
-- Does the safest route become unreasonably long?
-- Are low-crime but isolated areas being over-rewarded?
-- Are high-walkability downtown areas being over-rewarded despite incident density?
-- Do the route explanations match the actual edge features?
+Example per-segment table:
 
-## Limitations
+| Street segment | Nearby crime count | Walkability score | Safety interpretation |
+|---|---:|---:|---|
+| College Ave | 3 | 14.2 | moderate |
+| El Cajon Blvd | 8 | 10.1 | lower |
+| University Ave | 1 | 16.5 | stronger |
 
-SafePath's score is a proxy, not a guarantee of personal safety.
+The exact explanation design can evolve, but the key goal is:
 
-Known limitations:
+```text
+The user should understand what tradeoff the route is making.
+```
 
-- SDPD Calls for Service are not the same as all crime that happened.
-- Some incidents are never reported.
-- Some calls may not represent confirmed danger.
-- Historical incidents do not capture real-time conditions.
-- Walkability is measured at the block group level, which may be too coarse for street-level comfort.
-- The first version may not include time of day, lighting, construction, crowds, or user feedback.
-- A route that scores safer in the model may still feel unsafe to a real user.
+---
 
-These limitations should be visible in the final project so the team does not overclaim what SafePath can do.
+## Methodological limitations
 
-## What belongs somewhere else
+### Crime data is incomplete
 
-To keep this document readable:
+SDPD Calls for Service do not represent every unsafe event. Some incidents are never reported.
 
-- raw data download steps belong in `docs/preprocessing.md`
-- geocoding details belong in `docs/preprocessing.md`
-- CRS and GeoPandas validation details belong in `docs/preprocessing.md`
-- weekly progress belongs in `docs/status/`
-- installation and data setup belong in `README.md`
+### Calls for service are not the same as confirmed crime
+
+Even with filtering, a call record is not always the same as a verified criminal event.
+
+### Walkability is a proxy
+
+`NatWalkInd` measures built environment factors such as connectivity and land use mix. It does not directly measure perceived safety.
+
+### Edge-level scoring can over-simplify context
+
+A route may feel unsafe for reasons not captured by crime count or walkability, such as visibility, harassment, crowding, or personal familiarity.
+
+### Historical data is not real-time
+
+SafePath does not currently include live traffic, construction, transit delays, police alerts, or temporary closures.
+
+### A safety score is not a guarantee
+
+SafePath can suggest routes based on available data, but it cannot guarantee that a route is safe.
+
+---
+
+## Open methodological decisions
+
+The team still needs to decide:
+
+1. What buffer distance should be used for nearby crime?
+2. Should crime be severity-weighted?
+3. Should the app ask for time of day?
+4. Should walkability be normalized nationally or within San Diego?
+5. Which OSM attributes are reliable enough to include?
+6. What weights should be used in the safety score?
+7. What alpha value should define the balanced route?
+8. How should route explanations be shown to users?
