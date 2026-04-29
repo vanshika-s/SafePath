@@ -8,9 +8,9 @@ This is a quarter-long student data science project (DS3 @ UC San Diego). It use
 
 If you just joined the team, read in this order:
 
-1. This README — what the project is and how to set up the data.
+1. This README : what the project is and how to set up the data.
 2. The most recent weekly status under [`docs/status/`](docs/status/), for example [`docs/status/week4_status.md`](docs/status/week4_status.md). One short file is added each week so future contributors can easily track the project's history.
-3. [`docs/methodology.md`](docs/methodology.md) — the full technical pipeline (datasets → scoring → routing → app), including how each piece connects to the user-facing question.
+3. [`docs/methodology.md`](docs/methodology.md) : the full technical pipeline (datasets → scoring → routing → app), including how each piece connects to the user-facing question.
 
 For meeting notes and weekly brainstorming, see Vanshika's Google Docs
 
@@ -79,9 +79,9 @@ From the Google Drive folder created by Matthew:
 
 Place all three in `data/processed/`:
 
-- `crime_final_gdf.gpkg` — geocoded crime points
-- `walkability_final_gdf.gpkg` — block group polygons with walkability scores
-- `geocode_cache.json` — cached Nominatim lookups (do not delete; lets re-runs of the preprocessing notebook resume instead of re-geocoding from zero)
+- `crime_final_gdf.gpkg` : geocoded crime points
+- `walkability_final_gdf.gpkg` : block group polygons with walkability scores
+- `geocode_cache.json` : cached Nominatim lookups (do not delete; lets re-runs of the preprocessing notebook resume instead of re-geocoding from zero)
 
 ### Step 3 — Sanity check
 
@@ -115,6 +115,6 @@ The first three call-type/disposition/priority files are also bundled in `docs/`
 
 ## Where to read more
 
-- [`docs/methodology.md`](docs/methodology.md) — full technical pipeline, scoring math, edge attributes, GeoPandas walkthrough.
-- [`docs/status/`](docs/status/) — short weekly status files, one per week. Read the most recent one to see what is in flight.
-- Notebooks themselves — the markdown cells inside `notebooks/crime-df-preprocessing.ipynb` and `notebooks/walkability-df-preprocessing.ipynb` document each preprocessing decision in context.
+- [`docs/methodology.md`](docs/methodology.md) : full technical pipeline, scoring math, edge attributes, GeoPandas walkthrough.
+- [`docs/status/`](docs/status/) : short weekly status files, one per week. Read the most recent one to see what is in flight.
+- [`notebooks/`](notebooks/) Notebooks themselves : the markdown cells inside `notebooks/crime-df-preprocessing.ipynb` and `notebooks/walkability-df-preprocessing.ipynb` document each preprocessing decision in context.
