@@ -8,7 +8,7 @@ Every dataset SafePath uses, where it came from, and who is working with it.
 | --- | --- | --- | --- |
 | SDPD Calls for Service (crime) | cleaned | `data/processed/crime_final_gdf.gpkg` | done |
 | EPA Walkability Index + Census TIGER | cleaned | `data/processed/walkability_final_gdf.gpkg` | done |
-| San Diego street lights | not started | TBD | Max |
+| San Diego street lights | almost done | TBD | Max |
 | San Diego buffered bike and scooter lanes | not started | TBD | Max |
 | OpenStreetMap walking network | downloaded at runtime | not stored locally | Ruan, downstream |
 
