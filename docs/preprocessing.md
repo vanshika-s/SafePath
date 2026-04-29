@@ -1,313 +1,638 @@
 # SafePath Data Preprocessing
 
-This document explains how the processed SafePath data files were created and how teammates can validate them. It focuses on data cleaning, preprocessing decisions, and sanity checks, not route scoring.
-
-For project setup, use `README.md`. For the planned scoring and routing design, use `docs/methodology.md`. For weekly progress, use `docs/status/`.
-
 ## Purpose of this document
 
-SafePath uses processed data files instead of asking every teammate to rerun the raw data pipeline. This document explains what those files contain, how they were created, and how to check whether they are reasonable.
+This document explains how the processed SafePath data files were created and how teammates can validate them.
 
-The goal is not just to say that the data loads. The goal is to make it possible for teammates to validate whether the cleaned data makes sense for the project.
+It focuses on data cleaning, preprocessing decisions, and sanity checks.
+
+It does **not** explain route scoring. For scoring and routing assumptions, use `docs/methodology.md`.
+
+It does **not** explain the full backend-to-frontend flow. For that, use `docs/pipeline.md`.
+
+---
 
 ## Processed outputs
 
-The processed files should live in:
+SafePath uses these processed files:
 
 ```text
 data/processed/
+  crime_final_gdf.gpkg
+  walkability_final_gdf.gpkg
+  geocode_cache.json
 ```
 
-Expected files:
+### `crime_final_gdf.gpkg`
 
-| File | What it contains | Why SafePath needs it |
-|---|---|---|
-| `crime_final_gdf.gpkg` | Geocoded SDPD incident points | Used to estimate crime or incident risk near street edges |
-| `walkability_final_gdf.gpkg` | San Diego block group polygons with `NatWalkInd` | Used to estimate walkability and pedestrian comfort near street edges |
-| `geocode_cache.json` | Cached Nominatim geocoding results | Prevents rerunning thousands of slow geocoding requests |
+Contains geocoded SDPD incident points after filtering.
 
-The processed files are shared through the team Google Drive because they are too large or too slow to recreate casually.
+Expected geometry:
+
+```text
+Point geometry
+```
+
+Expected use:
+
+```text
+count nearby incidents around each street edge
+```
+
+Created by:
+
+```text
+notebooks/crime-df-preprocessing.ipynb
+```
+
+---
+
+### `walkability_final_gdf.gpkg`
+
+Contains San Diego Census block group polygons with EPA walkability scores.
+
+Expected geometry:
+
+```text
+Polygon or MultiPolygon geometry
+```
+
+Expected key score column:
+
+```text
+NatWalkInd
+```
+
+Expected use:
+
+```text
+assign walkability score to each street edge based on midpoint location
+```
+
+Created by:
+
+```text
+notebooks/walkability-df-preprocessing.ipynb
+```
+
+---
+
+### `geocode_cache.json`
+
+Contains cached Nominatim geocoding results.
+
+Expected use:
+
+```text
+avoid re-geocoding the same crime addresses every time
+```
+
+Important:
+
+Do not delete this file unless the team intentionally wants to rerun geocoding from scratch.
+
+---
 
 ## Crime data preprocessing
 
-The crime preprocessing pipeline turns SDPD Calls for Service records into geocoded point data.
+### Goal
 
-### Input
+Turn raw SDPD Calls for Service records into geocoded point data that can be mapped and spatially joined to street edges.
+
+### Raw input
 
 Raw source:
 
 ```text
-SDPD Calls for Service CSV
+SDPD Calls for Service
 ```
 
 Important raw fields may include:
 
-- incident date or time
+- date or timestamp
 - call type
 - disposition code
-- priority level
-- address or intersection
+- priority
+- address components
+- hour of day
 
-### Main cleaning steps
+The exact columns may differ by year or export.
 
-1. Load the SDPD Calls for Service data.
-2. Filter to relevant disposition codes so the file focuses on incidents with some confirmed outcome, such as arrest, report taken, or officer action.
-3. Keep call types that may reasonably affect pedestrian safety.
-4. Standardize address or intersection strings before geocoding.
-5. Geocode unique addresses with Nominatim instead of geocoding every row.
-6. Save successful geocoding results to `geocode_cache.json`.
-7. Join cached coordinates back to the filtered crime records.
-8. Drop rows where geocoding failed or coordinates are unusable.
-9. Convert the result into a GeoDataFrame with point geometry.
-10. Save the final processed file as `crime_final_gdf.gpkg`.
+---
 
-### Why geocode unique addresses
+### Step 1: Load SDPD Calls for Service data
 
-Many calls can happen at the same address or intersection. Geocoding every row wastes time and may hit rate limits. Geocoding each unique address once is faster and easier to resume.
+The preprocessing notebook loads the raw SDPD Calls for Service CSV.
 
-Nominatim is rate-limited, so the first full run may take hours. Do not delete `geocode_cache.json` unless the team intentionally wants to rebuild the cache.
+Validation checks:
 
-## Crime data validation checklist
+- File loads without error.
+- Row count is recorded before filtering.
+- Expected columns are present.
 
-A teammate validating `crime_final_gdf.gpkg` should check the following.
-
-### Basic file checks
-
-- File loads without error using GeoPandas.
-- A geometry column exists.
-- The CRS is set.
-- Rows have latitude and longitude or point geometry.
-- There are no obvious empty columns that should contain key information.
-
-### Location checks
-
-- Points appear in or near San Diego when plotted.
-- A small random sample of addresses lands near the expected location.
-- There are no obvious points in another city, state, or ocean unless expected.
-- Duplicate addresses reuse cached coordinates consistently.
-
-### Filtering checks
-
-- The kept disposition codes match the intended definition of confirmed or relevant incidents.
-- Pedestrian-relevant call types are included.
-- Clearly irrelevant call types are excluded.
-- Priority values, if used, still have interpretable values after cleaning.
-
-### Suggested quick validation code
+Example checks:
 
 ```python
-import geopandas as gpd
-
-crime = gpd.read_file("data/processed/crime_final_gdf.gpkg")
-print(crime.shape)
-print(crime.crs)
-print(crime.geometry.geom_type.value_counts())
-crime.head()
+df.shape
+df.columns
+df.head()
 ```
 
-Optional map check:
+---
+
+### Step 2: Filter to relevant incidents
+
+The raw SDPD file includes many call types. Not all of them are useful for pedestrian safety.
+
+The preprocessing should filter to:
+
+- confirmed or actioned incidents, based on disposition codes
+- call types that are reasonably relevant to walking safety
+
+Examples of relevant categories may include:
+
+- assault
+- robbery
+- weapons
+- stalking or threats
+- narcotics
+- hazardous conditions
+- burglary or in-progress incidents
+
+Validation checks:
+
+- Save or document the list of included call types.
+- Save or document the list of included disposition codes.
+- Check that obviously irrelevant call types are excluded.
+- Check that important safety-related call types are included.
+
+---
+
+### Step 3: Build a geocodable address string
+
+The SDPD dataset may store address pieces across multiple columns.
+
+A full address string should be built before geocoding.
+
+Example pattern:
 
 ```python
-crime.sample(500, random_state=42).explore()
+crimes_df["full_address"] = (
+    crimes_df["address_num"].astype(str)
+    + " "
+    + crimes_df["address_dir"].fillna("")
+    + " "
+    + crimes_df["address_road"].fillna("")
+    + ", San Diego, CA"
+)
 ```
 
-## Walkability data preprocessing
+Validation checks:
 
-The walkability preprocessing pipeline turns EPA walkability scores and Census block group boundaries into one spatial file.
+- Inspect a random sample of `full_address`.
+- Check for blank or malformed addresses.
+- Check how intersections or block-level addresses are represented.
 
-### Inputs
+---
 
-Raw sources:
+### Step 4: Geocode unique addresses with Nominatim
+
+The crime data needs latitude and longitude before it can become spatial point data.
+
+Use Nominatim through `geopy`.
+
+Important rule:
 
 ```text
-EPA Smart Location Database / Walkability Index
-Census TIGER block group shapefile
+Geocode unique addresses, not every row.
 ```
 
-Important fields:
+The same address can appear many times. Geocoding unique addresses saves time and avoids unnecessary requests.
 
-- block group ID
-- `NatWalkInd`
-- block group geometry
-
-### Main cleaning steps
-
-1. Load the EPA walkability data.
-2. Filter the national dataset down to San Diego County block groups.
-3. Load the Census TIGER block group shapefile.
-4. Standardize block group IDs in both datasets.
-5. Merge the EPA scores onto the Census block group polygons.
-6. Check that `NatWalkInd` is present after the merge.
-7. Convert the result into a GeoDataFrame with polygon geometry.
-8. Save the final processed file as `walkability_final_gdf.gpkg`.
-
-### Important ID issue
-
-Block group IDs should be treated as strings, not floats.
-
-If a block group ID loads as a number like this:
+Nominatim rate limit:
 
 ```text
-6.073017e+10
+about 1 request per second
 ```
 
-it should be converted back into a zero-padded string before merging. Otherwise, the merge can silently fail or create missing scores.
-
-## Walkability data validation checklist
-
-A teammate validating `walkability_final_gdf.gpkg` should check the following.
-
-### Basic file checks
-
-- File loads without error using GeoPandas.
-- A geometry column exists.
-- The CRS is set.
-- Geometry type is polygon or multipolygon.
-- `NatWalkInd` exists.
-- `NatWalkInd` values are in the expected 1 to 20 range.
-
-### Merge checks
-
-- Block group IDs look like full Census GEOID strings.
-- Most or all San Diego block groups have a non-null `NatWalkInd` value.
-- The number of rows is reasonable for San Diego County block groups.
-- The merge did not create many duplicated block groups.
-
-### Map checks
-
-- Polygons render over San Diego County.
-- There are no obvious missing holes caused by failed joins.
-- High and low walkability values appear plausible after mapping.
-
-### Suggested quick validation code
-
-```python
-import geopandas as gpd
-
-walk = gpd.read_file("data/processed/walkability_final_gdf.gpkg")
-print(walk.shape)
-print(walk.crs)
-print(walk.geometry.geom_type.value_counts())
-print(walk["NatWalkInd"].describe())
-walk.head()
-```
-
-Optional map check:
-
-```python
-walk.explore(column="NatWalkInd", legend=True)
-```
-
-## Coordinate systems
-
-Coordinate systems matter because SafePath uses distance-based operations.
-
-### Common CRS values
-
-| CRS | Meaning | Use |
-|---|---|---|
-| `EPSG:4326` | latitude and longitude | Good for storing and mapping web coordinates |
-| projected CRS, such as `EPSG:3857` | meter-based coordinate system | Needed for buffers and distance operations |
-
-Do not create a 50 meter buffer while the data is still in raw latitude and longitude degrees. Project the data first, then buffer.
+Use `RateLimiter` so the process does not overload the free service.
 
 Example:
 
 ```python
-crime_projected = crime.to_crs("EPSG:3857")
-walk_projected = walk.to_crs("EPSG:3857")
+from geopy.geocoders import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
+
+geolocator = Nominatim(user_agent="safepath")
+geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 ```
 
-## Validation before scoring
+Validation checks:
 
-Before route scoring starts, the team should be able to answer these questions.
+- Count unique addresses before geocoding.
+- Record how many addresses geocoded successfully.
+- Record how many failed.
+- Spot check a sample of geocoded locations on a map.
 
-### Crime data
+---
 
-- How many rows were in the raw file?
-- How many rows remain after disposition filtering?
-- How many rows remain after call type filtering?
-- How many unique addresses were geocoded?
-- How many rows were dropped because geocoding failed?
-- Do sampled points appear in the correct places?
+### Step 5: Cache geocoding results
 
-### Walkability data
+Save geocoding results so future runs do not start from zero.
 
-- How many San Diego block groups are in the final file?
-- How many have missing `NatWalkInd`?
-- Are all scores inside the expected range?
-- Do polygons render correctly?
-- Did the GEOID merge behave as expected?
+Expected output:
 
-### Recommended validation table
-
-Add a small table to the repo or notebook after validation.
-
-```md
-| Check | Expected | Actual | Pass? | Notes |
-|---|---:|---:|---|---|
-| Crime file loads | yes |  |  |  |
-| Crime rows with geometry | all final rows |  |  |  |
-| Walkability file loads | yes |  |  |  |
-| Missing NatWalkInd | near zero |  |  |  |
-| Points/polygons map correctly | yes |  |  |  |
+```text
+geocode_cache.json
 ```
 
-## Known preprocessing limitations
+Validation checks:
 
-The processed files are useful for the next project step, but they are not perfect.
+- Cache file exists.
+- Cache contains successful results.
+- Re-running the notebook uses the cache instead of geocoding every address again.
 
-Known limitations:
+---
 
-- SDPD Calls for Service are not the same as all crimes that happened.
-- Some incidents are underreported.
-- Some calls may not represent actual danger after investigation.
-- Geocoding can be imperfect, especially for intersections or ambiguous addresses.
-- Nominatim may return approximate locations.
-- Walkability is measured at the block group level, which may be too coarse for a specific street segment.
-- `NatWalkInd` is a national relative score, not a San Diego-only score.
-- The data may cover a limited time window, so sparse areas may look safer than they really are.
+### Step 6: Drop failed geocodes
 
-These limitations should be considered when designing the scoring formula.
+Rows with failed geocoding cannot be placed on a map.
+
+Validation checks:
+
+- Count rows before and after dropping failed geocodes.
+- Check whether dropped rows are random or concentrated in certain call types or neighborhoods.
+- Document if the failure rate is large.
+
+---
+
+### Step 7: Save final crime GeoPackage
+
+Convert final crime records into a GeoDataFrame and save:
+
+```text
+data/processed/crime_final_gdf.gpkg
+```
+
+Expected geometry:
+
+```text
+Point
+```
+
+Example:
+
+```python
+import geopandas as gpd
+
+crime_gdf = gpd.GeoDataFrame(
+    crimes_df,
+    geometry=gpd.points_from_xy(crimes_df.lng, crimes_df.lat),
+    crs="EPSG:4326"
+)
+
+crime_gdf.to_file("data/processed/crime_final_gdf.gpkg", driver="GPKG")
+```
+
+---
+
+## Crime data validation checklist
+
+A teammate should be able to run these checks before using the file for scoring.
+
+### Basic file checks
+
+- [ ] `crime_final_gdf.gpkg` loads without error.
+- [ ] Geometry column exists.
+- [ ] CRS is set.
+- [ ] Geometry type is point.
+- [ ] Row count is reasonable.
+- [ ] No final rows have missing latitude or longitude.
+
+Example:
+
+```python
+import geopandas as gpd
+
+crime_gdf = gpd.read_file("data/processed/crime_final_gdf.gpkg")
+
+crime_gdf.shape
+crime_gdf.crs
+crime_gdf.geom_type.value_counts()
+crime_gdf.isna().mean().sort_values(ascending=False).head(20)
+```
+
+### Location checks
+
+- [ ] Points appear in or near San Diego.
+- [ ] No points are obviously in the ocean, another state, or another country.
+- [ ] A random sample of addresses matches the approximate mapped location.
+
+Example:
+
+```python
+crime_gdf.explore()
+```
+
+### Filtering checks
+
+- [ ] Included call types match the team's safety definition.
+- [ ] Included disposition codes are documented.
+- [ ] Irrelevant call types are not accidentally included.
+- [ ] High-priority safety-related incidents are not accidentally excluded.
+
+---
+
+## Walkability data preprocessing
+
+### Goal
+
+Turn EPA walkability scores and Census TIGER boundaries into one spatial file with both:
+
+```text
+NatWalkInd score + block group polygon geometry
+```
+
+---
+
+### Raw inputs
+
+Raw source 1:
+
+```text
+EPA Smart Location Database / Walkability Index
+```
+
+Contains:
+
+```text
+NatWalkInd and related walkability variables
+```
+
+Raw source 2:
+
+```text
+Census TIGER block group shapefile
+```
+
+Contains:
+
+```text
+block group polygon geometry
+```
+
+---
+
+### Step 1: Load EPA walkability CSV
+
+The EPA file covers the whole United States.
+
+Filter to San Diego County.
+
+Example condition:
+
+```python
+walk_sd = walk_df[
+    (walk_df["STATEFP"] == 6) &
+    (walk_df["COUNTYFP"] == 73)
+]
+```
+
+Validation checks:
+
+- Filter keeps only San Diego County.
+- `NatWalkInd` exists.
+- `NatWalkInd` values are within the expected range.
+
+---
+
+### Step 2: Load Census TIGER block group shapefile
+
+GeoPandas needs all shapefile sibling files in the same folder.
+
+Keep these together:
+
+```text
+.shp
+.dbf
+.prj
+.shx
+.cpg
+```
+
+Example:
+
+```python
+import geopandas as gpd
+
+bg_gdf = gpd.read_file("data/raw/tl_2020_06_bg/tl_2020_06_bg.shp")
+```
+
+Validation checks:
+
+- Shapefile loads without error.
+- Geometry column exists.
+- Polygons render correctly.
+- CRS is set.
+
+---
+
+### Step 3: Standardize block group IDs
+
+The EPA file and the Census shapefile need a shared ID.
+
+Common issue:
+
+```text
+GEOID20 may load as a float, such as 6.073017e+10
+```
+
+It should become a 12-character zero-padded string.
+
+Example:
+
+```python
+walk_sd["GEOID20"] = (
+    walk_sd["GEOID20"]
+    .astype(int)
+    .astype(str)
+    .str.zfill(12)
+)
+```
+
+The shapefile may use `GEOID`, so rename it:
+
+```python
+bg_gdf = bg_gdf.rename(columns={"GEOID": "GEOID20"})
+```
+
+Validation checks:
+
+- ID columns have the same type.
+- ID columns have the same length.
+- IDs look like 12-character strings.
+- Merge keys are not missing.
+
+---
+
+### Step 4: Merge walkability scores with polygons
+
+Example:
+
+```python
+walk_gdf = bg_gdf.merge(
+    walk_sd[["GEOID20", "NatWalkInd"]],
+    on="GEOID20",
+    how="inner"
+)
+```
+
+Validation checks:
+
+- Merged row count is reasonable.
+- `NatWalkInd` is not mostly missing.
+- Geometry is preserved after merge.
+- Polygons cover San Diego block groups.
+
+Expected approximate row count from prior notes:
+
+```text
+about 2,058 San Diego block groups
+```
+
+If the number is very different, investigate before using the file.
+
+---
+
+### Step 5: Save final walkability GeoPackage
+
+Expected output:
+
+```text
+data/processed/walkability_final_gdf.gpkg
+```
+
+Example:
+
+```python
+walk_gdf.to_file("data/processed/walkability_final_gdf.gpkg", driver="GPKG")
+```
+
+---
+
+## Walkability data validation checklist
+
+A teammate should be able to run these checks before using the file for scoring.
+
+### Basic file checks
+
+- [ ] `walkability_final_gdf.gpkg` loads without error.
+- [ ] Geometry column exists.
+- [ ] CRS is set.
+- [ ] Geometry type is polygon or multipolygon.
+- [ ] `NatWalkInd` exists.
+- [ ] `NatWalkInd` values are within the expected range.
+- [ ] Row count is reasonable.
+
+Example:
+
+```python
+walk_gdf = gpd.read_file("data/processed/walkability_final_gdf.gpkg")
+
+walk_gdf.shape
+walk_gdf.crs
+walk_gdf.geom_type.value_counts()
+walk_gdf["NatWalkInd"].describe()
+walk_gdf.explore(column="NatWalkInd")
+```
+
+### Merge checks
+
+- [ ] Block group IDs were standardized before merge.
+- [ ] Merge did not create many missing scores.
+- [ ] Merge did not duplicate block groups unexpectedly.
+- [ ] Final polygons still cover San Diego.
+
+---
+
+## Coordinate systems
+
+Coordinate systems are important because SafePath uses distance operations.
+
+### Common CRS values
+
+| CRS | Meaning | Used for |
+|---|---|---|
+| `EPSG:4326` | latitude and longitude in degrees | raw coordinates, web maps |
+| `EPSG:3857` | projected coordinates in meters | buffers and distance operations |
+
+### Rule
+
+```text
+Use EPSG:4326 for web display.
+Use a projected CRS for distance calculations.
+```
+
+Before creating a 50 meter buffer, project to a meter-based CRS:
+
+```python
+crime_gdf_3857 = crime_gdf.to_crs("EPSG:3857")
+edges_3857 = edges.to_crs("EPSG:3857")
+```
+
+Why:
+
+```text
+Buffering in degrees is not reliable.
+Buffering in meters is meaningful.
+```
+
+---
 
 ## Optional: rerun preprocessing from raw data
 
-Most teammates do not need this section. Use it only if the team wants to refresh the processed files.
+Most teammates should not need this. Use the processed files from the shared drive.
 
-### Raw data sources
+Rerun preprocessing only if:
 
-**SDPD Calls for Service**
+- the team wants to refresh to a newer SDPD file
+- the current processed output is wrong
+- the team changes filtering rules
+- the team wants to reproduce the cleaning from scratch
 
-- Download the relevant year from the City of San Diego open data portal.
-- Save it under `data/raw/`.
+### Raw sources
 
-**EPA Walkability Index**
+#### SDPD Calls for Service
 
-- Download the EPA Smart Location Database / Walkability Index file.
-- Save it under `data/raw/`.
+Download from the City of San Diego open data portal.
 
-**Census TIGER Block Group Shapefile**
-
-- Download the California 2020 block group shapefile.
-- Unzip it into `data/raw/`.
-- Keep all shapefile sibling files together, such as `.shp`, `.dbf`, `.prj`, and `.shx`.
-
-### Expected raw folder shape
+Save under:
 
 ```text
 data/raw/
-  pd_calls_for_service_YYYY_datasd.csv
-  EPA_SmartLocationDatabase_V3_Jan_2021_Final.csv
-  tl_2020_06_bg/
-    tl_2020_06_bg.dbf
-    tl_2020_06_bg.prj
-    tl_2020_06_bg.shp
-    tl_2020_06_bg.shx
 ```
 
-### Notebooks to run
+#### EPA Walkability Index
 
-Run these from the top only if refreshing the data:
+Download the EPA Smart Location Database / Walkability Index file.
+
+Save under:
+
+```text
+data/raw/
+```
+
+#### Census TIGER Block Group Shapefile
+
+Download the California block group shapefile.
+
+Keep all shapefile sibling files together.
+
+---
+
+### Run notebooks
+
+Run:
 
 ```text
 notebooks/crime-df-preprocessing.ipynb
@@ -322,13 +647,46 @@ data/processed/walkability_final_gdf.gpkg
 data/processed/geocode_cache.json
 ```
 
-Warning: crime geocoding can take hours on the first run because Nominatim is rate-limited. Keep the cache so the process can resume.
+Warning:
 
-## What does not belong in this document
+The crime geocoding step can take several hours because Nominatim is rate-limited.
 
-To keep this file focused:
+---
 
-- route scoring design belongs in `docs/methodology.md`
-- weekly progress belongs in `docs/status/`
-- project setup belongs in `README.md`
-- meeting notes and brainstorming belong in the team Google Doc or weekly status files
+## Known preprocessing limitations
+
+### Geocoding can be imperfect
+
+Nominatim may return approximate or incorrect locations, especially for intersections, incomplete addresses, or ambiguous street names.
+
+### Failed geocodes are dropped
+
+Dropping failed geocodes may bias the data if failures are concentrated in certain neighborhoods or address formats.
+
+### SDPD Calls for Service are imperfect
+
+The raw data does not capture every unsafe event. It also may include calls that do not become confirmed crimes.
+
+### Walkability is coarse
+
+Walkability is measured at the Census block group level, which may be too broad for street-level routing.
+
+### Time coverage may be limited
+
+If the processed crime file only covers a few months, some streets may look safer simply because the time window is short.
+
+---
+
+## Minimum validation before scoring
+
+Before using the processed files for edge scoring, confirm:
+
+- [ ] crime file loads
+- [ ] walkability file loads
+- [ ] both files have valid geometry
+- [ ] both files have CRS set
+- [ ] crime points appear in San Diego
+- [ ] walkability polygons cover San Diego
+- [ ] `NatWalkInd` exists and has reasonable values
+- [ ] geocoded crime locations pass a small spot check
+- [ ] team understands the main limitations
