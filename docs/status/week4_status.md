@@ -3,7 +3,7 @@
 A short weekly snapshot for the SafePath team. Anyone can edit this file. Save next week as `week5_status.md` next to it.
 
 **Date range:** end of Week 4
-**Team:** Vanshika (lead), Matthew, Max, Ruhan, Ajay
+**Team:** Vanshika (mentor), Matthew, Max, Ruhan, Ajay
 **Overall status:** on track or not?
 
 ## What got done this week
@@ -34,7 +34,7 @@ If you want a small concrete first task this week, any of these are useful:
 
 ## Notes for the team
 
-We have 5 people and roughly 5 to 10 hours each per week, so plan small. One file or one notebook cell is plenty for a week. Drop a quick note in Discord when you start something so we do not double up.
+We have 4 people and roughly 10 hours each per week, so plan small. One file or one notebook cell is plenty for a week. Drop a quick note in Discord when you start something so we do not double up.
 
 ## Where things live
 
