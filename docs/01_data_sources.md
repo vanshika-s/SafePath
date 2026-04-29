@@ -5,13 +5,13 @@
 
 ## Quick scan table
 
-| Dataset | Status | Output file | Owner |
-| - | - | - | - |
+| Dataset | Status | Output file | Progress | Owner |
+| - | - | - | - | - |
 | [SDPD Calls for Service](https://data.sandiego.gov/datasets/police-calls-for-service/) | cleaned | `data/processed/crime_final_gdf.gpkg` | done | Matthew |
 | [EPA Walkability Index](https://www.kaggle.com/datasets/stacey06/u-s-walkability-index) + [Census TIGER](https://www2.census.gov/geo/tiger/TIGER2020/BG/tl_2020_06_bg.zip) | cleaned | `data/processed/walkability_final_gdf.gpkg` | done | Matthew |
-| San Diego street lights | not started | TBD | Max |
-| San Diego buffered bike + scooter lanes | not started | TBD | Max |
-| OpenStreetMap walking network (via [OSMnx](https://osmnx.readthedocs.io)) | downloaded at runtime | not stored | Ruan, downstream |
+| San Diego street lights | not started | TBD | not started | Max |
+| San Diego buffered bike + scooter lanes | not started | TBD | not started | Max |
+| OpenStreetMap walking network (via [OSMnx](https://osmnx.readthedocs.io)) | downloaded at runtime | not stored | downstream | Ruan |
 
 ## 1. SDPD Calls for Service (crime)
 
