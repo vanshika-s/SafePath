@@ -65,4 +65,4 @@ We have 4 student teammates and one mentor. Plan small for each week. One file, 
 1. Final code, instructions, and project knowledge: this GitHub repo.
 2. Large processed data files: team Google Drive, linked in `README.md`.
 3. Quick chat and questions: Discord.
-4. Meeting minutes and brainstorming: team Google Drive notes folder.
+4. Meeting minutes and brainstorming: team Google Doc.
