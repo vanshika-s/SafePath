@@ -6,7 +6,7 @@ This is a quarter-long student data science project (DS3 @ UC San Diego). It use
 
 ## Start here
 
-If you just joined the team, read in this order:
+If you just joined the project, read in this order:
 
 1. This README : what the project is and how to set up the data.
 2. The most recent weekly status under [`docs/status/`](docs/status/), for example [`docs/status/week4_status.md`](docs/status/week4_status.md). One short file is added each week so future contributors can easily track the project's history.
