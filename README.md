@@ -119,10 +119,7 @@ The first three call-type/disposition/priority files are also bundled in `docs/`
 
 - [`docs/methodology.md`](docs/methodology.md) : scoring assumptions, route-cost formula, route modes, and limitations.
 - [`docs/status/`](docs/status/) : short weekly status files, one per week. Read the most recent one to see what is in flight.
-- [`notebooks/`](notebooks/) Notebooks themselves : the markdown cells inside `notebooks/crime-df-preprocessing.ipynb` and `notebooks/walkability-df-preprocessing.ipynb` document each preprocessing decision in context.
-
-## Where to read even more
-
 - [`docs/pipeline.md`](docs/pipeline.md) : how data moves from typed address to displayed route.
 - [`docs/preprocessing.md`](docs/pipeline.md) : how processed data files were created and how to validate them.
+- [`notebooks/`](notebooks/) Notebooks themselves : the markdown cells inside `notebooks/crime-df-preprocessing.ipynb` and `notebooks/walkability-df-preprocessing.ipynb` document each preprocessing decision in context.
 
