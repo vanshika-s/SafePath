@@ -2,7 +2,7 @@
 
 A short weekly snapshot for the SafePath team. Anyone can edit this file. Save next week as `week5_status.md` next to it.
 
-**Date range:** end of Week 4  
+**Date range:** end of Week 4, Apr 26, 2026  
 **Team:** Matthew, Max, Ruhan, Ajay  
 **Mentor:** Vanshika  
 **Overall status:** On track. Crime and walkability preprocessing are mostly complete, and the next major step is assigning safety scores to street segments.
