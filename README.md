@@ -12,7 +12,7 @@ If you just joined the team, read in this order:
 2. The most recent weekly status under [`docs/status/`](docs/status/), for example [`docs/status/week4_status.md`](docs/status/week4_status.md). One short file is added each week so anyone can see where the project stands.
 3. [`docs/methodology.md`](docs/methodology.md) — the full technical pipeline (datasets → scoring → routing → app), including how each piece connects to the user-facing question.
 
-For meeting notes and weekly brainstorming, see the team Google Drive (link in Discord).
+For meeting notes and weekly brainstorming, see Vanshika's Google Docs
 
 ## Quick start
 
