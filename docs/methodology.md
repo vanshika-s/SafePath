@@ -239,6 +239,9 @@ In SafePath, GeoPandas does four things plain pandas cannot:
 
 **4. Geometry operations.** `contains`, `intersects`, `within`, `buffer` (e.g. 50m around an edge), and `.area` are all built in. Without GeoPandas, all of this would mean writing geometry math from scratch on top of Shapely.
 
+
+Reference: https://docs.google.com/document/d/1y2eViHtmPmksf7rXS3IgglXV2l2p_o8H/edit?usp=sharing&ouid=102290811200605502736&rtpof=true&sd=true
+
 ## Optional — rerun from raw data
 
 You usually don't need this. Only do it if you want to refresh the underlying data (e.g., a newer year of SDPD calls).
