@@ -39,9 +39,11 @@ You don't need to run the preprocessing notebooks unless you want to refresh the
 SafePath/
 ├── data/                   # not tracked in git — download per Data setup below
 ├── docs/
-│   ├── methodology.md      # full technical pipeline write up
+│   ├── methodology/        # planned scoring and routing methodology
 │   ├── status/             # one short weekly status file per week (week4_status.md, week5_status.md, ...)
-│   └── ...                 # SDPD reference files (CSV/PDF)
+│   ├── reference/          # SDPD reference files (CSV/PDF)
+│   ├── preprocessing.md    # data cleaning and validation guide
+│   └── pipeline.md         # full technical pipeline write up
 ├── notebooks/              # data preprocessing notebooks (one per dataset)
 ├── src/                    # planned: reusable Python modules (scoring, routing). Empty for now.
 ├── app/                    # planned: Streamlit frontend. Empty for now.
