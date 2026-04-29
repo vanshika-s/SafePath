@@ -6,6 +6,8 @@ This is the long-form companion to the README. It explains how the data flows fr
 
 The technical pieces below all exist to answer questions a user might actually ask about a route:
 
+(TBD)
+
 | User question                                                       | What in the pipeline answers it                                                |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | "Will this route feel isolated?"                                    | Walkability score per edge (NatWalkInd from the EPA index) — captures how connected and pedestrian-active the neighborhood is. |
