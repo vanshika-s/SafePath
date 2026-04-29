@@ -38,8 +38,6 @@ You don't need to run the preprocessing notebooks unless you want to refresh the
 ```
 SafePath/
 ├── data/                   # not tracked in git — download per Data setup below
-│   ├── raw/                # original source files (only needed if you re-run preprocessing)
-│   └── processed/          # cleaned outputs the rest of the project reads from
 ├── docs/
 │   ├── methodology.md      # full technical pipeline write up
 │   ├── status/             # one short weekly status file per week (week4_status.md, week5_status.md, ...)
@@ -69,15 +67,9 @@ The preprocessing notebooks have already been run and the results are shared in 
 
 **Why we share processed files:** the crime preprocessing notebook geocodes tens of thousands of unique addresses through Nominatim, which rate-limits to one request per second. From scratch it takes hours. The raw SDPD CSV alone is several hundred MB and requires accounts on the City of San Diego open data portal, Kaggle, and the Census FTP. Sharing the cleaned outputs skips all of that.
 
-### Step 1 — Make the folders
+### Step 1 — Make the data folder
 
-Inside your cloned repo:
-
-```
-SafePath/
-└── data/
-    └── processed/    ← download destination
-```
+Create `data/processed/` at the repo root, next to `notebooks/`. The notebooks read from `../data/processed/...`, so the folder must sit there for the code to work. The folder is gitignored on purpose because the files are too large for GitHub.
 
 ### Step 2 — Download the processed files
 
