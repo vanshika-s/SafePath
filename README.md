@@ -10,7 +10,7 @@ If you just joined the project, read in this order:
 
 1. This README : what the project is and how to set up the data.
 2. The most recent weekly status under [`docs/status/`](docs/status/), for example [`docs/status/week4_status.md`](docs/status/week4_status.md). One short file is added each week so future contributors can easily track the project's history.
-3. [`docs/methodology.md`](docs/methodology.md) : the full technical pipeline (datasets → scoring → routing → app), including how each piece connects to the user-facing question.
+3. [`docs/methodology.md`](docs/methodology.md) : planned scoring and routing methodology
 
 For meeting notes and weekly brainstorming, see Vanshika's Google Docs
 
