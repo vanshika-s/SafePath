@@ -8,7 +8,7 @@ The technical pieces below all exist to answer questions a user might actually a
 
 (TBD)
 
-| User question                                                       | What in the pipeline answers it                                                |
+| User question                                                       | What in the pipeline answers it (example)                                      |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | "Will this route feel isolated?"                                    | Walkability score per edge (NatWalkInd from the EPA index) — captures how connected and pedestrian-active the neighborhood is. |
 | "Is this route worth the extra walking time?"                       | Balanced cost = length × (1 + 4·(1 − safety_score)) — exposes the tradeoff explicitly. |
