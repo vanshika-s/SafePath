@@ -9,20 +9,30 @@ A short weekly snapshot for the SafePath team. Anyone can edit this file. Save n
 
 ## What got done this week
 
-1. Matthew merged the main preprocessing work into `main`.
-2. Crime data from SDPD Calls for Service was filtered to confirmed incidents only using relevant disposition codes.
-3. Crime data was narrowed to pedestrian-relevant call types that may affect walking safety.
-4. Crime incidents were geocoded so each incident has latitude and longitude coordinates.
-5. EPA walkability data was filtered from the national dataset down to San Diego block groups.
-6. Census TIGER shapefiles were merged with the walkability data so each block group has polygon geometry.
-7. The cleaned crime and walkability files are now closer to being usable for spatial lookups and route scoring.
-8. README and methodology documentation were cleaned up so teammates can better understand setup and project direction.
+### Matthew: data preprocessing
 
-## Why this matters
+Matthew merged the main preprocessing work into `main`.
 
-The main goal of this preprocessing work is to create clean, geocoded data that can be connected to the San Diego street network. Once each street segment has nearby crime and walkability information, SafePath can score routes based on safety and comfort instead of only shortest distance.
+For the crime data, he:
+1. Filtered SDPD Calls for Service to confirmed incidents only using relevant disposition codes.
+2. Kept pedestrian-relevant call types that may affect walking safety.
+3. Geocoded crime incidents so each incident has latitude and longitude coordinates.
 
-## What we are doing next week (Week 5)
+For the walkability data, he:
+1. Filtered the national EPA walkability dataset down to San Diego block groups.
+2. Merged the walkability data with Census TIGER shapefiles.
+3. Attached polygon geometry to each block group so the data can support spatial lookups.
+
+### Team documentation cleanup
+
+The README and methodology documentation were cleaned up so teammates can better understand the project setup, data flow, next steps, and weekly status.
+
+### Why this matters
+
+These updates move SafePath closer to the next technical step: assigning safety and comfort scores to each street segment in the San Diego walking network.
+
+
+## What we are doing next week (Week 5, TBD)
 
 1. Use the latitude and longitude crime data to connect incidents to nearby street segments.
 2. Use OSMnx and OpenStreetMap data to build a San Diego street network.
