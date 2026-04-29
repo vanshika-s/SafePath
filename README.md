@@ -55,9 +55,9 @@ SafePath/
 
 Three public datasets feed the project. We use processed versions of all three.
 
-- **San Diego Police Calls for Service** — incident reports from the SDPD with date, time, call type, priority, and address. We use this for crime density and severity along walking routes.
-- **U.S. Walkability Index (EPA)** — a 1–20 score per Census block group capturing street connectivity, transit access, and land-use mix.
-- **Census TIGER Block Group Boundaries (CA, 2020)** — polygon shapes for every California Census block group. We merge these with the Walkability Index so each block group has both a score and a geographic shape.
+- **San Diego Police Calls for Service** : incident reports from the SDPD with date, time, call type, priority, and address. We use this for crime density and severity along walking routes.
+- **U.S. Walkability Index (EPA)** : a 1–20 score per Census block group capturing street connectivity, transit access, and land-use mix.
+- **Census TIGER Block Group Boundaries (CA, 2020)** : polygon shapes for every California Census block group. We merge these with the Walkability Index so each block group has both a score and a geographic shape.
 
 Detailed explanations of what each column means and how it feeds into scoring are in [`docs/methodology.md`](docs/methodology.md).
 
