@@ -13,6 +13,8 @@ This file is **not** the README, the weekly status, or the preprocessing validat
 - For scoring assumptions and route methodology, read `docs/methodology.md`.
 - For how cleaned data files were created and validated, read `docs/preprocessing.md`.
 
+Reference: https://docs.google.com/document/d/1y2eViHtmPmksf7rXS3IgglXV2l2p_o8H/edit
+
 ---
 
 ## Backend vs frontend in simple terms
