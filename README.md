@@ -51,7 +51,7 @@ SafePath/
 └── README.md
 ```
 
-`src/` and `app/` are placeholders today. Moving the proven scoring and routing logic out of the notebooks into `src/`, and starting the Streamlit app in `app/`, is the next step. See the latest file in `docs/status/` for the current week.
+`src/` and `app/` are placeholders today. Moving the proven scoring and routing logic out of the notebooks into `src/`, and starting the Streamlit app in `app/`, is the next step. See the latest file in `docs/status/` for the current week. You will also create a local data/processed/ folder at the repo root. It is gitignored. See Data setup section.
 
 ## Datasets
 
