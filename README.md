@@ -73,7 +73,7 @@ Create `data/processed/` at the repo root, next to `notebooks/`. The notebooks r
 
 ### Step 2 — Download the processed files
 
-From the team Google Drive folder:
+From the Google Drive folder created by Matthew:
 
 **https://drive.google.com/drive/folders/1DSxQlvn6lq-D_tax9uDd42b5rNIIyQQ8?usp=sharing**
 
