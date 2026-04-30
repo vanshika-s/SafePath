@@ -1,0 +1,1340 @@
+{
+  "currentVersion": 11.5,
+  "cimVersion": "3.5.0",
+  "id": 1,
+  "name": "Street Light",
+  "type": "Feature Layer",
+  "description": "This dataset identifies street light poles within the City of San Diego. Features are represented as points indicating the mapped location of street light poles maintained by the City of San Diego Transportation Department. Attribute information supports identification and management of the pole and associated street lighting equipment. The geographic extent is limited to the City of San Diego.",
+  "geometryType": "esriGeometryPoint",
+  "sourceSpatialReference": {
+    "wkid": 102646,
+    "latestWkid": 2230,
+    "xyTolerance": 0.003280833333333333,
+    "zTolerance": 0.001,
+    "mTolerance": 0.001,
+    "falseX": -118608900,
+    "falseY": -91259500,
+    "xyUnits": 3048.0060960121928,
+    "falseZ": -100000,
+    "zUnits": 10000,
+    "falseM": 0,
+    "mUnits": 1
+  },
+  "spatialReference": {
+    "wkid": 102646,
+    "latestWkid": 2230,
+    "xyTolerance": 0.0032808333333333335,
+    "zTolerance": 0.0002,
+    "mTolerance": 0.0002,
+    "falseX": -118608900,
+    "falseY": -91259500,
+    "xyUnits": 35979706.30767777,
+    "falseZ": -100000,
+    "zUnits": 10000,
+    "falseM": -100000,
+    "mUnits": 10000
+  },
+  "copyrightText": "This dataset was created and is maintained by the City of San Diego's Transportation Department. Data sources include SanGIS, city records, aerial imagery, and field surveys. The data was processed and managed using ArcGIS software from Esri.",
+  "parentLayer": null,
+  "subLayers": [],
+  "minScale": 20000,
+  "maxScale": 0,
+  "referenceScale": 10000.0,
+  "drawingInfo": {
+    "renderer": {
+      "type": "simple",
+      "symbol": {
+        "type": "esriPMS",
+        "url": "10a0a908e9f16af80dc161ba69ed17bb",
+        "imageData": "iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAYAAACprHcmAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAvElEQVQYlaXRsQsBcRjG8e/vnEWU4pKR8l9YlElEGWQ2yHATu9lkoSx2mYQUKX+GQTLrzkKJ4l4zh5J3fPr09va8Oj+M/h9eic7RbpE36t+xiGJyKKMoMt0vyEbmn/HUriJyANXn7okzstMUwks3HlsDBB9KnYESSBNN1ZhYC3JG4xnrN5O7t4LjbEHzgLMGumjeoXtzJmox27SRoIkQQFMhckbv882ZxJXVrsPJn3yF76tLxS5AwZX/+pQHwAw3ndAUFqQAAAAASUVORK5CYII=",
+        "contentType": "image/png",
+        "width": 8,
+        "height": 8,
+        "angle": 0,
+        "xoffset": 0,
+        "yoffset": 0
+      }
+    },
+    "scaleSymbols": true,
+    "transparency": 0,
+    "labelingInfo": null
+  },
+  "defaultVisibility": false,
+  "extent": {
+    "xmin": 6244818.000069797,
+    "ymin": 1777818.6169197261,
+    "xmax": 6352839.020903975,
+    "ymax": 1985242.6610603184,
+    "zmin": 0,
+    "zmax": 0,
+    "spatialReference": {
+      "wkid": 102646,
+      "latestWkid": 2230,
+      "xyTolerance": 0.0032808333333333335,
+      "zTolerance": 0.0002,
+      "mTolerance": 0.0002,
+      "falseX": -118608900,
+      "falseY": -91259500,
+      "xyUnits": 35979706.30767777,
+      "falseZ": -100000,
+      "zUnits": 10000,
+      "falseM": -100000,
+      "mUnits": 10000
+    }
+  },
+  "hasAttachments": false,
+  "htmlPopupType": "esriServerHTMLPopupTypeAsHTMLText",
+  "displayField": "SAPID",
+  "typeIdField": null,
+  "subtypeFieldName": null,
+  "subtypeField": null,
+  "defaultSubtypeCode": null,
+  "fields": [
+    {
+      "name": "OBJECTID",
+      "type": "esriFieldTypeOID",
+      "alias": "OBJECTID",
+      "domain": null
+    },
+    {
+      "name": "SAPID",
+      "type": "esriFieldTypeString",
+      "alias": "SAP ID",
+      "length": 13,
+      "domain": null
+    },
+    {
+      "name": "STATUS",
+      "type": "esriFieldTypeString",
+      "alias": "Status",
+      "length": 1,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_ACTIVE_INACTIVE",
+        "description": "Operational state of a record, feature, asset, or project.",
+        "codedValues": [
+          {
+            "name": "Active",
+            "code": "A"
+          },
+          {
+            "name": "Inactive",
+            "code": "I"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "Shape",
+      "type": "esriFieldTypeGeometry",
+      "alias": "Shape",
+      "domain": null
+    },
+    {
+      "name": "CDCODE",
+      "type": "esriFieldTypeInteger",
+      "alias": "CDCODE",
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_CD_3",
+        "description": "Numeric code (1\u20139) identifying the City of San Diego Council District.",
+        "codedValues": [
+          {
+            "name": "1",
+            "code": 1
+          },
+          {
+            "name": "2",
+            "code": 2
+          },
+          {
+            "name": "3",
+            "code": 3
+          },
+          {
+            "name": "4",
+            "code": 4
+          },
+          {
+            "name": "5",
+            "code": 5
+          },
+          {
+            "name": "6",
+            "code": 6
+          },
+          {
+            "name": "7",
+            "code": 7
+          },
+          {
+            "name": "8",
+            "code": 8
+          },
+          {
+            "name": "9",
+            "code": 9
+          },
+          {
+            "name": "OUTSIDE BOUNDARY",
+            "code": 0
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "CODE",
+      "type": "esriFieldTypeSmallInteger",
+      "alias": "CODE",
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_WorkArea",
+        "description": "Street Division Work Area",
+        "codedValues": [
+          {
+            "name": "NORTHERN",
+            "code": 1
+          },
+          {
+            "name": "SOUTHERN",
+            "code": 3
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "CPCODE",
+      "type": "esriFieldTypeInteger",
+      "alias": "CPCODE",
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_CommunityPlan_2",
+        "description": "Community planning areas are regions within the city defined by adopted community plans that guide land use and development.",
+        "codedValues": [
+          {
+            "name": "Balboa Park",
+            "code": 1
+          },
+          {
+            "name": "Barrio Logan",
+            "code": 2
+          },
+          {
+            "name": "Black Mountain Ranch",
+            "code": 13
+          },
+          {
+            "name": "Carmel Mountain Ranch",
+            "code": 3
+          },
+          {
+            "name": "Carmel Valley",
+            "code": 21
+          },
+          {
+            "name": "Clairemont Mesa",
+            "code": 6
+          },
+          {
+            "name": "College Area",
+            "code": 38
+          },
+          {
+            "name": "Del Mar Mesa",
+            "code": 51
+          },
+          {
+            "name": "Downtown",
+            "code": 4
+          },
+          {
+            "name": "East Elliott",
+            "code": 7
+          },
+          {
+            "name": "Encanto Neighborhoods",
+            "code": 11
+          },
+          {
+            "name": "Fairbanks Ranch Country Club",
+            "code": 49
+          },
+          {
+            "name": "Greater Golden Hill",
+            "code": 8
+          },
+          {
+            "name": "Kearny Mesa",
+            "code": 50
+          },
+          {
+            "name": "La Jolla",
+            "code": 10
+          },
+          {
+            "name": "Linda Vista",
+            "code": 12
+          },
+          {
+            "name": "Los Penasquitos Canyon Preserve",
+            "code": 96
+          },
+          {
+            "name": "Mid-City: City Heights",
+            "code": 56
+          },
+          {
+            "name": "Mid-City: Eastern Area",
+            "code": 57
+          },
+          {
+            "name": "Mid-City: Kensington-Talmadge",
+            "code": 58
+          },
+          {
+            "name": "Mid-City: Normal Heights",
+            "code": 59
+          },
+          {
+            "name": "Midway-Pacific Highway",
+            "code": 14
+          },
+          {
+            "name": "Military Facilities",
+            "code": 97
+          },
+          {
+            "name": "Mira Mesa",
+            "code": 15
+          },
+          {
+            "name": "Miramar Ranch North",
+            "code": 9
+          },
+          {
+            "name": "Mission Bay Park",
+            "code": 17
+          },
+          {
+            "name": "Mission Beach",
+            "code": 18
+          },
+          {
+            "name": "Mission Valley",
+            "code": 19
+          },
+          {
+            "name": "NCFUA Subarea II",
+            "code": 61
+          },
+          {
+            "name": "Navajo",
+            "code": 20
+          },
+          {
+            "name": "North Park",
+            "code": 28
+          },
+          {
+            "name": "Ocean Beach",
+            "code": 23
+          },
+          {
+            "name": "Old Town San Diego",
+            "code": 24
+          },
+          {
+            "name": "Otay Mesa",
+            "code": 26
+          },
+          {
+            "name": "Otay Mesa-Nestor",
+            "code": 25
+          },
+          {
+            "name": "Pacific Beach",
+            "code": 27
+          },
+          {
+            "name": "Pacific Highlands Ranch",
+            "code": 62
+          },
+          {
+            "name": "Peninsula",
+            "code": 30
+          },
+          {
+            "name": "Rancho Bernardo",
+            "code": 31
+          },
+          {
+            "name": "Rancho Encantada",
+            "code": 16
+          },
+          {
+            "name": "Rancho Penasquitos",
+            "code": 29
+          },
+          {
+            "name": "Reserve",
+            "code": 98
+          },
+          {
+            "name": "Sabre Springs",
+            "code": 5
+          },
+          {
+            "name": "San Pasqual",
+            "code": 32
+          },
+          {
+            "name": "San Ysidro",
+            "code": 33
+          },
+          {
+            "name": "Scripps Miramar Ranch",
+            "code": 34
+          },
+          {
+            "name": "Serra Mesa",
+            "code": 35
+          },
+          {
+            "name": "Skyline-Paradise Hills",
+            "code": 44
+          },
+          {
+            "name": "Southeastern San Diego",
+            "code": 37
+          },
+          {
+            "name": "Tierrasanta",
+            "code": 47
+          },
+          {
+            "name": "Tijuana River Valley",
+            "code": 39
+          },
+          {
+            "name": "Torrey Highlands",
+            "code": 52
+          },
+          {
+            "name": "Torrey Hills",
+            "code": 48
+          },
+          {
+            "name": "Torrey Pines",
+            "code": 40
+          },
+          {
+            "name": "University",
+            "code": 99
+          },
+          {
+            "name": "Uptown",
+            "code": 42
+          },
+          {
+            "name": "Via De La Valle",
+            "code": 55
+          },
+          {
+            "name": "Outside Boundary",
+            "code": 0
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "WHERE_INSTALLED",
+      "type": "esriFieldTypeString",
+      "alias": "WHERE_INSTALLED",
+      "length": 30,
+      "domain": null
+    },
+    {
+      "name": "SAPOBJNR",
+      "type": "esriFieldTypeString",
+      "alias": "SAPOBJNR",
+      "length": 22,
+      "domain": null
+    },
+    {
+      "name": "IAMFLOC",
+      "type": "esriFieldTypeString",
+      "alias": "IAMFLOC",
+      "length": 30,
+      "domain": null
+    },
+    {
+      "name": "MAPNG_STAT_CD",
+      "type": "esriFieldTypeString",
+      "alias": "MAPNG_STAT_CD",
+      "length": 2,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_MappingStatus_3",
+        "description": "",
+        "codedValues": [
+          {
+            "name": "AS BUILT",
+            "code": "AB"
+          },
+          {
+            "name": "ABANDONED",
+            "code": "AN"
+          },
+          {
+            "name": "OPERATIONAL",
+            "code": "OP"
+          },
+          {
+            "name": "REMOVED",
+            "code": "RM"
+          },
+          {
+            "name": "NOT MAPPED",
+            "code": "NM"
+          },
+          {
+            "name": "PROPOSED",
+            "code": "PR"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "LOC_DESC",
+      "type": "esriFieldTypeString",
+      "alias": "LOC_DESC",
+      "length": 40,
+      "domain": null
+    },
+    {
+      "name": "INST_YR",
+      "type": "esriFieldTypeDate",
+      "alias": "INST_YR",
+      "length": 8,
+      "domain": null
+    },
+    {
+      "name": "created_user",
+      "type": "esriFieldTypeString",
+      "alias": "created_user",
+      "length": 255,
+      "domain": null
+    },
+    {
+      "name": "created_date",
+      "type": "esriFieldTypeDate",
+      "alias": "created_date",
+      "length": 8,
+      "domain": null
+    },
+    {
+      "name": "last_edited_user",
+      "type": "esriFieldTypeString",
+      "alias": "last_edited_user",
+      "length": 255,
+      "domain": null
+    },
+    {
+      "name": "last_edited_date",
+      "type": "esriFieldTypeDate",
+      "alias": "last_edited_date",
+      "length": 8,
+      "domain": null
+    },
+    {
+      "name": "MAINT",
+      "type": "esriFieldTypeString",
+      "alias": "Maintained By",
+      "length": 1,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_MaintBy",
+        "description": "Maintained By",
+        "codedValues": [
+          {
+            "name": "CITY OF SAN DIEGO, STREET DIV",
+            "code": "1"
+          },
+          {
+            "name": "CITY OF SAN DIEGO, PARK & REC",
+            "code": "2"
+          },
+          {
+            "name": "CITY OF SAN DIEGO, METRO WASTEWATER",
+            "code": "3"
+          },
+          {
+            "name": "CITY OF SAN DIEGO, WATER",
+            "code": "4"
+          },
+          {
+            "name": "CITY OF SAN DIEGO, REAL ESTATE ASSETS",
+            "code": "5"
+          },
+          {
+            "name": "CITY OF SAN DIEGO, STORM WATER",
+            "code": "6"
+          },
+          {
+            "name": "PORT AUTHORITY",
+            "code": "A"
+          },
+          {
+            "name": "CALTRANS",
+            "code": "C"
+          },
+          {
+            "name": "MILITARY",
+            "code": "M"
+          },
+          {
+            "name": "OTHER",
+            "code": "O"
+          },
+          {
+            "name": "PRIVATE",
+            "code": "P"
+          },
+          {
+            "name": "CITY OF SAN DIEGO",
+            "code": "S"
+          },
+          {
+            "name": "SD COUNTY",
+            "code": "T"
+          },
+          {
+            "name": "UNKNOWN",
+            "code": "U"
+          },
+          {
+            "name": "CITY OF SAN DIEGO, FLEET",
+            "code": "7"
+          },
+          {
+            "name": "CITY OF SAN DIEGO, POLICE",
+            "code": "8"
+          },
+          {
+            "name": "CITY OF SAN DIEGO, FIRE",
+            "code": "9"
+          },
+          {
+            "name": "CITY OF SAN DIEGO, LIBRARY",
+            "code": "L"
+          },
+          {
+            "name": "US CUSTOMS AND BORDER PROTECTION",
+            "code": "B"
+          },
+          {
+            "name": "SAN DIEGO ZOO",
+            "code": "Z"
+          },
+          {
+            "name": "CITY OF CHULA VISTA",
+            "code": "V"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "SG_FLOC",
+      "type": "esriFieldTypeString",
+      "alias": "Signal Pole FLOC",
+      "length": 30,
+      "domain": null
+    },
+    {
+      "name": "SG_INT_FLOC",
+      "type": "esriFieldTypeString",
+      "alias": "Signalized Intersection FLOC",
+      "length": 30,
+      "domain": null
+    },
+    {
+      "name": "SVC_PT_LOC",
+      "type": "esriFieldTypeString",
+      "alias": "Service Point\u00a0Location",
+      "length": 40,
+      "domain": null
+    },
+    {
+      "name": "LIT_SVC_TYPE",
+      "type": "esriFieldTypeString",
+      "alias": "Lighting Service Type",
+      "length": 3,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_LIT_SVC_TYPE",
+        "description": "Type or category of lighting and install location.",
+        "codedValues": [
+          {
+            "name": "Airport",
+            "code": "AP"
+          },
+          {
+            "name": "Alley",
+            "code": "SA"
+          },
+          {
+            "name": "Ballpark",
+            "code": "BP"
+          },
+          {
+            "name": "Bikeway",
+            "code": "BK"
+          },
+          {
+            "name": "Boardwalk",
+            "code": "BW"
+          },
+          {
+            "name": "Boardwalk Bollard",
+            "code": "BO"
+          },
+          {
+            "name": "Environmental Services",
+            "code": "ES"
+          },
+          {
+            "name": "Fire Station",
+            "code": "BF"
+          },
+          {
+            "name": "Footbridge",
+            "code": "BZ"
+          },
+          {
+            "name": "Intersection",
+            "code": "SX"
+          },
+          {
+            "name": "Library",
+            "code": "BL"
+          },
+          {
+            "name": "Midblock",
+            "code": "SS"
+          },
+          {
+            "name": "MTS",
+            "code": "MT"
+          },
+          {
+            "name": "Navigation",
+            "code": "NA"
+          },
+          {
+            "name": "Parkway",
+            "code": "BG"
+          },
+          {
+            "name": "Pier",
+            "code": "BR"
+          },
+          {
+            "name": "Police Station",
+            "code": "BD"
+          },
+          {
+            "name": "Pool Lights",
+            "code": "PL"
+          },
+          {
+            "name": "PUD",
+            "code": "PU"
+          },
+          {
+            "name": "Uplights",
+            "code": "UP"
+          },
+          {
+            "name": "Utility",
+            "code": "UT"
+          },
+          {
+            "name": "Other",
+            "code": "OTH"
+          },
+          {
+            "name": "Unknown",
+            "code": "UNK"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "POLE_TYPE",
+      "type": "esriFieldTypeString",
+      "alias": "Pole Type",
+      "length": 3,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_SL_POLE_TYPE",
+        "description": "The type of pole used in street light installations.",
+        "codedValues": [
+          {
+            "name": "Concrete DB",
+            "code": "CDB"
+          },
+          {
+            "name": "Concrete Decorative",
+            "code": "CD"
+          },
+          {
+            "name": "Multi-Section Pole",
+            "code": "MSP"
+          },
+          {
+            "name": "Sternberg Pole",
+            "code": "SP"
+          },
+          {
+            "name": "Type 15",
+            "code": "T15"
+          },
+          {
+            "name": "Type C",
+            "code": "TC"
+          },
+          {
+            "name": "Wooden Pole",
+            "code": "WP"
+          },
+          {
+            "name": "Other",
+            "code": "OTH"
+          },
+          {
+            "name": "Unknown",
+            "code": "UNK"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "POLE_HEAD_TYPE",
+      "type": "esriFieldTypeString",
+      "alias": "Pole Head Type",
+      "length": 3,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_SL_POLE_HEAD",
+        "description": "The type of luminaire head installed on street light or poles",
+        "codedValues": [
+          {
+            "name": "Cobra",
+            "code": "C"
+          },
+          {
+            "name": "Post-top",
+            "code": "PT"
+          },
+          {
+            "name": "Other",
+            "code": "OTH"
+          },
+          {
+            "name": "Unknown",
+            "code": "UNK"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "MAST_ARM",
+      "type": "esriFieldTypeString",
+      "alias": "Mast Arm",
+      "length": 3,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_SL_MAST_ARM",
+        "description": "The design or type of mast arm used to support luminaires in street light systems.",
+        "codedValues": [
+          {
+            "name": "Single",
+            "code": "S"
+          },
+          {
+            "name": "Single - 4",
+            "code": "S4"
+          },
+          {
+            "name": "Single - 6",
+            "code": "S6"
+          },
+          {
+            "name": "Single - 8",
+            "code": "S8"
+          },
+          {
+            "name": "Single - 10",
+            "code": "S10"
+          },
+          {
+            "name": "Double",
+            "code": "D"
+          },
+          {
+            "name": "Double - 4",
+            "code": "D4"
+          },
+          {
+            "name": "Double - 6",
+            "code": "D6"
+          },
+          {
+            "name": "Double - 8",
+            "code": "D8"
+          },
+          {
+            "name": "Double - 10",
+            "code": "D10"
+          },
+          {
+            "name": "Other",
+            "code": "OTH"
+          },
+          {
+            "name": "Unknown",
+            "code": "UNK"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "POLE_MATERIAL",
+      "type": "esriFieldTypeString",
+      "alias": "Pole Material",
+      "length": 3,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_SL_POLE_MATERIAL",
+        "description": "The material composition of street light poles.",
+        "codedValues": [
+          {
+            "name": "Concrete",
+            "code": "C"
+          },
+          {
+            "name": "Fiberglass",
+            "code": "F"
+          },
+          {
+            "name": "Steel",
+            "code": "S"
+          },
+          {
+            "name": "Wood",
+            "code": "W"
+          },
+          {
+            "name": "Other",
+            "code": "OTH"
+          },
+          {
+            "name": "Unknown",
+            "code": "UNK"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "POLE_COLOR",
+      "type": "esriFieldTypeString",
+      "alias": "Pole Color",
+      "length": 3,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_SL_POLE_COLOR",
+        "description": "The color of the street light pole.",
+        "codedValues": [
+          {
+            "name": "Black, Gloss",
+            "code": "BK"
+          },
+          {
+            "name": "Chard Green",
+            "code": "CG"
+          },
+          {
+            "name": "Dark Bronze",
+            "code": "DB"
+          },
+          {
+            "name": "Green (Dark)",
+            "code": "GN"
+          },
+          {
+            "name": "Grey",
+            "code": "GY"
+          },
+          {
+            "name": "Ochre",
+            "code": "OC"
+          },
+          {
+            "name": "San Diego Blue",
+            "code": "CB"
+          },
+          {
+            "name": "Seafoam Green",
+            "code": "SG"
+          },
+          {
+            "name": "Other",
+            "code": "OTH"
+          },
+          {
+            "name": "Unknown",
+            "code": "UNK"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "POLE_HEIGHT_FT",
+      "type": "esriFieldTypeInteger",
+      "alias": "Pole Height (ft)",
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_SL_POLE_HEIGHT_FT",
+        "description": "The height of street light poles in US feet.",
+        "codedValues": [
+          {
+            "name": "10",
+            "code": 10
+          },
+          {
+            "name": "12",
+            "code": 12
+          },
+          {
+            "name": "15",
+            "code": 15
+          },
+          {
+            "name": "20",
+            "code": 20
+          },
+          {
+            "name": "25",
+            "code": 25
+          },
+          {
+            "name": "30",
+            "code": 30
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "SERIES_CIRCUIT",
+      "type": "esriFieldTypeString",
+      "alias": "Series Circuit",
+      "length": 3,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_YES_NO_NA_UNK",
+        "description": "Options are YES, NO, NOT APPLICABLE and UNKNOWN",
+        "codedValues": [
+          {
+            "name": "Yes",
+            "code": "Y"
+          },
+          {
+            "name": "No",
+            "code": "N"
+          },
+          {
+            "name": "Not Applicable",
+            "code": "NA"
+          },
+          {
+            "name": "Unknown",
+            "code": "UNK"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "SERIES_CIRCUIT_NAME",
+      "type": "esriFieldTypeString",
+      "alias": "Series Circuit Name",
+      "length": 255,
+      "domain": null
+    },
+    {
+      "name": "WIRE_GAUGE",
+      "type": "esriFieldTypeString",
+      "alias": "Wire Gauge",
+      "length": 3,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_SL_WIRE_GAUGE",
+        "description": "The gauge of the wire used in street light electrical systems, measured in American Wire Gauge (AWG).",
+        "codedValues": [
+          {
+            "name": "6AWG",
+            "code": "6"
+          },
+          {
+            "name": "8AWG",
+            "code": "8"
+          },
+          {
+            "name": "10AWG",
+            "code": "10"
+          },
+          {
+            "name": "12AWG",
+            "code": "12"
+          },
+          {
+            "name": "Series Wire",
+            "code": "SW"
+          },
+          {
+            "name": "Other",
+            "code": "OTH"
+          },
+          {
+            "name": "Unknown",
+            "code": "UNK"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "STRING_LIGHT",
+      "type": "esriFieldTypeString",
+      "alias": "String Light",
+      "length": 3,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_YES_NO_NA_UNK",
+        "description": "Options are YES, NO, NOT APPLICABLE and UNKNOWN",
+        "codedValues": [
+          {
+            "name": "Yes",
+            "code": "Y"
+          },
+          {
+            "name": "No",
+            "code": "N"
+          },
+          {
+            "name": "Not Applicable",
+            "code": "NA"
+          },
+          {
+            "name": "Unknown",
+            "code": "UNK"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "SDGE_WORK_ORDER_NO",
+      "type": "esriFieldTypeString",
+      "alias": "SDGE Work Order Number",
+      "length": 40,
+      "domain": null
+    },
+    {
+      "name": "DRAWING_NO",
+      "type": "esriFieldTypeString",
+      "alias": "As-Built Drawing Number",
+      "length": 30,
+      "domain": null
+    },
+    {
+      "name": "BANNER_DISTRICT",
+      "type": "esriFieldTypeString",
+      "alias": "Banner District",
+      "length": 3,
+      "domain": {
+        "type": "codedValue",
+        "name": "WS1_YES_NO_NA_UNK",
+        "description": "Options are YES, NO, NOT APPLICABLE and UNKNOWN",
+        "codedValues": [
+          {
+            "name": "Yes",
+            "code": "Y"
+          },
+          {
+            "name": "No",
+            "code": "N"
+          },
+          {
+            "name": "Not Applicable",
+            "code": "NA"
+          },
+          {
+            "name": "Unknown",
+            "code": "UNK"
+          }
+        ],
+        "mergePolicy": "esriMPTDefaultValue",
+        "splitPolicy": "esriSPTDefaultValue"
+      }
+    },
+    {
+      "name": "MAD",
+      "type": "esriFieldTypeString",
+      "alias": "Maintenance Assessment District",
+      "length": 50,
+      "domain": null
+    },
+    {
+      "name": "NOTES",
+      "type": "esriFieldTypeString",
+      "alias": "Notes",
+      "length": 255,
+      "domain": null
+    },
+    {
+      "name": "EQUIPMENT_ID",
+      "type": "esriFieldTypeString",
+      "alias": "Equipment ID",
+      "length": 10,
+      "domain": null
+    },
+    {
+      "name": "POLE_NUMBER",
+      "type": "esriFieldTypeDouble",
+      "alias": "Pole Number",
+      "domain": null
+    },
+    {
+      "name": "EVARI_POLE_NO",
+      "type": "esriFieldTypeInteger",
+      "alias": "Evari Pole Number",
+      "domain": null
+    }
+  ],
+  "geometryField": {
+    "name": "Shape",
+    "type": "esriFieldTypeGeometry",
+    "alias": "Shape"
+  },
+  "indexes": [
+    {
+      "name": "FDO_OBJECTID",
+      "fields": "OBJECTID",
+      "isAscending": true,
+      "isUnique": true,
+      "description": ""
+    },
+    {
+      "name": "FDO_Shape",
+      "fields": "Shape",
+      "isAscending": true,
+      "isUnique": false,
+      "description": ""
+    }
+  ],
+  "subtypes": [],
+  "relationships": [],
+  "canModifyLayer": true,
+  "canScaleSymbols": true,
+  "hasLabels": false,
+  "capabilities": "Map,Query,Data",
+  "maxRecordCount": 2000,
+  "maxSelectionCount": 2000,
+  "supportsStatistics": true,
+  "supportsExceedsLimitStatistics": true,
+  "supportsAdvancedQueries": true,
+  "hasZ": true,
+  "supportedQueryFormats": "JSON, geoJSON, PBF",
+  "isDataVersioned": false,
+  "ownershipBasedAccessControlForFeatures": {
+    "allowOthersToQuery": true
+  },
+  "useStandardizedQueries": true,
+  "supportedSpatialRelationships": [
+    "esriSpatialRelIntersects",
+    "esriSpatialRelContains",
+    "esriSpatialRelCrosses",
+    "esriSpatialRelEnvelopeIntersects",
+    "esriSpatialRelIndexIntersects",
+    "esriSpatialRelOverlaps",
+    "esriSpatialRelTouches",
+    "esriSpatialRelWithin",
+    "esriSpatialRelRelation"
+  ],
+  "advancedQueryCapabilities": {
+    "useStandardizedQueries": true,
+    "supportsStatistics": true,
+    "supportsPercentileStatistics": true,
+    "supportsHavingClause": true,
+    "supportsOrderBy": true,
+    "supportsDistinct": true,
+    "supportsCountDistinct": true,
+    "supportsAdvancedQueryRelated": true,
+    "supportsQueryRelatedPagination": true,
+    "supportsPagination": true,
+    "supportsLod": false,
+    "supportsQueryWithLodSR": false,
+    "supportsTrueCurve": true,
+    "supportsQueryWithDatumTransformation": true,
+    "supportsReturningQueryExtent": true,
+    "supportsQueryWithDistance": true,
+    "supportsSqlExpression": true,
+    "supportsTimeRelation": true,
+    "supportsSqlFormat": false,
+    "supportsQueryAnalytic": false,
+    "supportsCurrentUserQueries": true
+  },
+  "supportsDatumTransformation": true,
+  "dateFieldsTimeReference": null,
+  "preferredTimeReference": null,
+  "datesInUnknownTimezone": false,
+  "hasMetadata": true,
+  "isDataArchived": false,
+  "archivingInfo": {
+    "supportsQueryWithHistoricMoment": false,
+    "startArchivingMoment": -1
+  },
+  "supportsCoordinatesQuantization": true,
+  "supportsDynamicLegends": true,
+  "serviceItemId": "dcee747168fa4fdf9001a9f653e39535"
+}

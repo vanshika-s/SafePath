@@ -1,0 +1,59 @@
+dataset: streetlights
+source_url: https://webmaps.sandiego.gov/arcgis/rest/services/Planning/PLN_Mobility/MapServer/1
+download_method: ArcGIS REST /query, paged GeoJSON
+download_query:
+  where: "1=1"
+  outFields: "*"
+  outSR: 4326
+  f: geojson
+  resultRecordCount: 2000
+download_timestamp_utc: 2026-04-30T18:01:03Z
+publisher: City of San Diego, Department of Transportation & Storm Water
+license: City of San Diego Open Data — see catalog page
+license_text_copied: |
+  <paste from catalog page on the day of download>
+fields_observed:
+  - BANNER_DISTRICT
+  - CDCODE
+  - CODE
+  - CPCODE
+  - DRAWING_NO
+  - EQUIPMENT_ID
+  - EVARI_POLE_NO
+  - IAMFLOC
+  - INST_YR
+  - LIT_SVC_TYPE
+  - LOC_DESC
+  - MAD
+  - MAINT
+  - MAPNG_STAT_CD
+  - MAST_ARM
+  - NOTES
+  - OBJECTID
+  - POLE_COLOR
+  - POLE_HEAD_TYPE
+  - POLE_HEIGHT_FT
+  - POLE_MATERIAL
+  - POLE_NUMBER
+  - POLE_TYPE
+  - SAPID
+  - SAPOBJNR
+  - SDGE_WORK_ORDER_NO
+  - SERIES_CIRCUIT
+  - SERIES_CIRCUIT_NAME
+  - SG_FLOC
+  - SG_INT_FLOC
+  - STATUS
+  - STRING_LIGHT
+  - SVC_PT_LOC
+  - WHERE_INSTALLED
+  - WIRE_GAUGE
+  - created_date
+  - created_user
+  - last_edited_date
+  - last_edited_user
+record_count: 56049
+crs_in_file: EPSG:4326
+fetched_by: Maxime
+notes: |
+  Replace this line with anything anomalous from the download.
