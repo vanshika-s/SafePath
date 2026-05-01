@@ -4,7 +4,7 @@
 
 > **Team norms ([28 April meeting](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing)):** post a Discord update after every meaningful change, and react to every message in `#safepath` so the sender knows it was seen.
 
-_Last updated: end of Week 4 → moving into Week 5._
+_Last updated: 2026-05-01 (end of Week 4 → moving into Week 5). Streetlight cleaning + Clery aggregate extraction landed this week._
 
 Past weekly snapshots live in [`status/`](status/). This file is the single source of truth for "where are we right now."
 
