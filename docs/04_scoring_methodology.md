@@ -7,8 +7,8 @@
 | Person | Task |
 | - | - |
 | Matthew | Design the weighted score for safety and convenience |
-| AJ | Compare how different weights change route results |
-| Ruan | Prototype initial scoring on a small test area |
+| AJay | Compare how different weights change route results |
+| Ruhan | Prototype initial scoring on a small test area |
 
 ## Where to find related docs
 
