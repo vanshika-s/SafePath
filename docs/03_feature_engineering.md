@@ -120,15 +120,33 @@ edges_3857["streetlight_count_50m"] = joined.groupby(level=0).size()
 
 **Caveat (UCSD interior).** The City layer is city-maintained streetlights. UCSD campus interior has 228 lights in the snapshot — non-zero but uneven. L4 tags those edges `ucsd_uncovered` and L5 falls back to neutral 0.5 instead of 0 so the router doesn't penalize campus-interior walks. UCSD campus polygon source still open (SANGIS vs. hand-built bbox) — pick one before computing L4.
 
-### Buffered bike + scooter lane flag (future, depends on Max)
+### Bike comfort feature (future, depends on Max)
 
-**Idea.** A binary or graded value per edge for whether a buffered bike or scooter lane runs along it. Buffered lanes correlate with calmer traffic, which usually feels more comfortable to a pedestrian.
+**Idea.** Capture how protected the bike facility nearest to an edge is, and how much of the edge length is alongside it. Buffered/protected lanes correlate with calmer traffic, which usually feels more comfortable to a pedestrian.
+
+**Proposed feature shape (open for review — replaces the simpler `bike_buffer_flag`).**
+
+| ID | Feature | Definition | Range |
+| - | - | - | - |
+| F6 | `bike_class_max` | highest bike-class category within 15 m of the edge midline | enum {0, 1, 2, 2.5, 3, 4} |
+| F7 | `bike_coverage_pct` | fraction of edge length with any bike facility within 15 m | [0, 1] |
+| F8 | `bike_buffer_score` | combined: `class_value[F6] * F7` | [0, 1] |
+
+**Class-value table.**
+
+```
+class_value = {0: 0.0, 1: 0.9, 2: 0.5, 2.5: 0.7, 3: 0.3, 4: 1.0}
+```
+
+**Ordering rationale (open for review):** Class IV (protected) > Class I (separated path) > Class II Buffered > plain Class II > Class III (signed only) > none. Class IV outranks Class I because it's protected *and* adjacent to pedestrian space, where Class I is fully off-road. Open for team review — happy to revert to a simpler `bike_buffer_flag` if the half-step (2.5) is confusing.
 
 **Recipe sketch:**
 
-1. Reproject bike lanes and OSM edges to the same CRS.
-2. For each edge, ask whether any bike lane segment runs nearby and roughly parallel.
-3. Store as `bike_buffer_flag` (0 or 1) or `bike_buffer_score` (`[0, 1]`), whichever is easier.
+1. Reproject bike lanes and OSM edges to `EPSG:3857` (meters).
+2. Sample edge midline every ~10 m; for each sample, find the highest-class bike facility within 15 m.
+3. Aggregate to `F6` (max), `F7` (fraction with any facility), `F8` (combined).
+
+**Caveat.** A separate Bike Master Plan dataset exists for *proposed* facilities — see the hard rule in [`01_data_sources.md`](01_data_sources.md) §5. Never feed proposed facilities into F6–F8.
 
 ## Things to be careful about
 

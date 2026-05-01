@@ -63,13 +63,19 @@
 
 ## 5. San Diego buffered bike + scooter lanes (not started)
 
-**Source.** [San Diego open data portal](https://data.sandiego.gov), look for Bike Network or Bike Facilities. We want the **buffered** variant (lanes with a physical buffer from car traffic).
+**Source.** City of San Diego open data, [Bike Route Lines](https://data.sandiego.gov/datasets/bike-route-lines/) (existing facilities, 2015 baseline — verify "updated" timestamp on download). Geometry: line. Format: GeoJSON, shapefile, TopoJSON, CSV.
 
-**What it has.** Line geometry of bike and scooter lanes with attributes for lane type and buffer presence.
+**Expected fields** (from ArcGIS hub mirrors, unverified until download): `OBJECTID`, `CLASS` (1=Class I separated path, 2=Class II striped lane, 3=Class III signed shared route, 4=Class IV protected cycle track), `CLASSTYPE` (sub-types: Buffered / Protected / Cycle Track), `CATEGORY`, `Shape`, `Shape_Length`, `GlobalID`.
+
+**California bikeway classification** (Streets & Highways Code 890.4): Class I = fully separated path; Class II = striped on-roadway lane (Buffered if a painted buffer is present); Class III = signed shared roadway, no separation; Class IV = physically separated cycle track / protected bikeway.
+
+**Scooter relevance.** Class I, II, and IV facilities are generally usable by Class 2 e-scooters under California Vehicle Code §21229 / §21235; sidewalks are not. Treating bike-lane presence as a scooter-comfort proxy is reasonable.
 
 **Why it matters.** Buffered lanes correlate with calmer streets and are a useful proxy for pedestrian comfort.
 
-**Owner.** Max. See [`02_data_cleaning.md`](02_data_cleaning.md#what-is-not-done-yet-maxs-task).
+**Hard rule — do not mix existing with proposed.** A separate City of San Diego *Bike Master Plan* dataset ([data.sandiego.gov/datasets/bike-master-plan](https://data.sandiego.gov/datasets/bike-master-plan/)) lists *proposed* facilities. Never feed it into the live route score — it would tell users a route is comfortable when the lane doesn't exist yet. Save under `data/raw/bike_master_plan_proposed/` if downloaded for reference.
+
+**Owner.** Max. See [`02_data_cleaning.md`](02_data_cleaning.md#what-is-not-done-yet-maxs-task) and the bike feature spec in [`03_feature_engineering.md`](03_feature_engineering.md#bike-comfort-feature-future-depends-on-max).
 
 ## 6. OpenStreetMap walking network
 
