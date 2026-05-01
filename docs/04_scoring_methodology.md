@@ -136,9 +136,9 @@ Be honest about these in the app and in any presentation.
 | Lighting coverage is uneven on UCSD interior | 228 lights in the campus interior bbox, but coverage is uneven, so L4 falls back to neutral 0.5 there |
 | Safety score is a model | the app should say "looks safer in our data," not "is safe" |
 
-## How AJ should evaluate weight choices
+## How Ajay should evaluate weight choices
 
-Minimum experiment design AJ can run as soon as the scoring formula returns numbers.
+Minimum experiment design Ajay can run as soon as the scoring formula returns numbers.
 
 1. Pick 5 to 10 start/end pairs in different parts of the city. Mix downtown, near campus, residential, less safe areas.
 2. For each pair, compute fastest, safest, balanced under at least 3 weight settings.
