@@ -41,7 +41,7 @@ ENV/
 .idea/
 
 # ── Data ──────────────────────────────────────────────────────────────────────
-data/
+/data/
 
 # CSV files everywhere except docs/
 *.csv
