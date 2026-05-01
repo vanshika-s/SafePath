@@ -35,9 +35,9 @@ Plain English version:
 | Your task | Read these |
 | - | - |
 | Cleaning bike lanes (Max) | [`02_data_cleaning.md`](02_data_cleaning.md) |
-| Feature engineering and initial scoring on sample routes (Ruan) | [`03_feature_engineering.md`](03_feature_engineering.md), [`04_scoring_methodology.md`](04_scoring_methodology.md) |
+| Feature engineering and initial scoring on sample routes (Ruhan) | [`03_feature_engineering.md`](03_feature_engineering.md), [`04_scoring_methodology.md`](04_scoring_methodology.md) |
 | Designing the weighted score for safety and convenience (Matthew) | [`04_scoring_methodology.md`](04_scoring_methodology.md) |
-| Comparing how different weights change routes (AJ) | [`04_scoring_methodology.md`](04_scoring_methodology.md) |
+| Comparing how different weights change routes (Ajay) | [`04_scoring_methodology.md`](04_scoring_methodology.md) |
 | New teammate, no specific task yet | [`01_data_sources.md`](01_data_sources.md), then [`status.md`](status.md) |
 
 ## Where things live

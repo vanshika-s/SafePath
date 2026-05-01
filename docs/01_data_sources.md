@@ -10,7 +10,7 @@
 | [EPA Walkability Index](https://www.kaggle.com/datasets/stacey06/u-s-walkability-index) + [Census TIGER](https://www2.census.gov/geo/tiger/TIGER2020/BG/tl_2020_06_bg.zip) | cleaned | `data/processed/walkability_final_gdf.gpkg` | done | Matthew |
 | San Diego street lights | cleaned | `data/processed/streetlights/streetlights_processed.geojson` | done | Max |
 | San Diego buffered bike + scooter lanes | not started | TBD | not started | Max |
-| OpenStreetMap walking network (via [OSMnx](https://osmnx.readthedocs.io)) | downloaded at runtime | not stored | downstream | Ruan |
+| OpenStreetMap walking network (via [OSMnx](https://osmnx.readthedocs.io)) | downloaded at runtime | not stored | downstream | Ruhan |
 
 ## 1. SDPD Calls for Service (crime)
 
@@ -85,7 +85,7 @@
 
 **Why it matters.** This is the actual map we route through. Every other dataset gets attached to OSM edges so the routing engine has one place to read scores from.
 
-**Owner.** Touched by Ruan in feature engineering. Used downstream in scoring.
+**Owner.** Touched by Ruhan in feature engineering. Used downstream in scoring.
 
 ## A note on data freshness
 

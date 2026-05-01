@@ -7,7 +7,7 @@
 | Person | Task |
 | - | - |
 | Matthew | Design the weighted score for safety and convenience |
-| AJay | Compare how different weights change route results |
+| Ajay | Compare how different weights change route results |
 | Ruhan | Prototype initial scoring on a small test area |
 
 ## Where to find related docs
@@ -109,7 +109,7 @@ We run shortest path 3 times using [`networkx.shortest_path`](https://networkx.o
 balanced_cost = alpha * length + (1 - alpha) * route_cost
 ```
 
-`alpha` is a knob between 0 and 1. **AJ owns** picking and testing alpha. Start at `alpha = 0.5`.
+`alpha` is a knob between 0 and 1. **Ajay owns** picking and testing alpha. Start at `alpha = 0.5`.
 
 ## What the app should eventually show
 
@@ -121,7 +121,7 @@ For each route:
 4. **One sentence explanation** ("avoids 3 high crime blocks, prefers well lit streets").
 5. Optional per segment breakdown: street name, lighting, crime count, walkability per block.
 
-The Streamlit UI itself is not in scope yet. We plan it in Week 6 once scoring produces stable outputs on a test neighborhood.
+The Streamlit UI itself is not in scope yet. We plan it in Week 6 once scoring produces stable outputs on a test neighborhood. Per the [design doc](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing), the map layer will be either [Google Maps](https://developers.google.com/maps) or [Leaflet](https://leafletjs.com) — pick in Week 6.
 
 ## Limitations
 
