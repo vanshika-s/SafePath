@@ -2,7 +2,7 @@
 
 > **TL;DR.** Each cleaned dataset becomes one or two numbers attached to each street edge in the OSM walking network. The scoring step only reads those numbers, never the raw data.
 
-**This week's owner:** Ruan.
+**Owner:** 
 
 ## The mental model
 
