@@ -1,91 +1,66 @@
 # SafePath
 
-SafePath is a route recommendation tool that suggests walking paths in San Diego based on safety and comfort, not just speed. It is aimed at people who feel vulnerable walking alone — students, women, anyone walking at night or in unfamiliar areas. Users will enter a start and destination and pick a preference (fastest, safest, balanced); the app will return a route with a plain-language explanation of why it scored that way.
+> **TL;DR.** SafePath recommends walking routes in San Diego that feel safer and more comfortable, not just the fastest. We score every street segment using crime, walkability, lighting, and bike lane data, then pick three routes (fastest, safest, balanced) and explain why.
 
-This is a quarter-long student data science project (DS3 @ UC San Diego). It uses public crime data, the EPA Walkability Index, Census block group boundaries, OpenStreetMap walking networks, and a weighted scoring algorithm to rank routes.
+[![Status](https://img.shields.io/badge/status-active--development-yellow)](docs/status.md) [![Docs](https://img.shields.io/badge/docs-5_step_path-blue)](docs/00_project_map.md) [![Course](https://img.shields.io/badge/DS3-Spring_2026-purple)](https://www.ds3atucsd.com)
 
-## Start here
+## What is SafePath
 
-If you just joined the team, read in this order:
+A route recommendation tool aimed at people who feel vulnerable walking alone. Students, women, anyone walking at night or in unfamiliar areas. The user enters a start and a destination, picks a preference (fastest, safest, balanced), and gets a route plus a plain English explanation of why it scored that way.
 
-1. This README : what the project is and how to set up the data.
-2. The most recent weekly status under [`docs/status/`](docs/status/), for example [`docs/status/week4_status.md`](docs/status/week4_status.md). One short file is added each week so future contributors can easily track the project's history.
-3. [`docs/methodology.md`](docs/methodology.md) : the full technical pipeline (datasets → scoring → routing → app), including how each piece connects to the user-facing question.
+This is a quarter long student data science project run through [DS3 at UC San Diego](https://www.ds3atucsd.com).
 
-For meeting notes and weekly brainstorming, see Vanshika's Google Docs
+## Start here (read in this order)
 
-## Quick start
+| # | Doc | What you get |
+| - | - | - |
+| 1 | This README | Project pitch, install, data setup |
+| 2 | [`docs/00_project_map.md`](docs/00_project_map.md) | The full 5 step learning path |
+| 3 | [`docs/status.md`](docs/status.md) | Who is doing what right now |
+
+For meeting notes, see the team [Google Drive](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing) and [GitHub workshop slides](https://docs.google.com/presentation/d/1WPHBVzyirhDXo6mF61rogD_oO6OWuwoV/edit?slide=id.p1#slide=id.p1). Quick chat is on Discord.
+
+## Quick start (3 minutes)
 
 ```bash
-# 1. clone
 git clone https://github.com/vanshika-s/SafePath.git
 cd SafePath
-
-# 2. install dependencies (Python 3.10+ recommended)
 pip install -r requirements.txt
+```
 
-# 3. download processed data (see "Data setup" below)
-#    drop the three files into data/processed/
+Then download data (next section), then open a notebook:
 
-# 4. open a notebook
+```bash
 jupyter notebook notebooks/
 ```
 
-You don't need to run the preprocessing notebooks unless you want to refresh the underlying data — the cleaned outputs are shared via Google Drive so you can skip straight to the scoring/routing work.
+## Data setup (one time)
 
-## Project layout
+> **Why download instead of regenerating?** The crime preprocessing notebook geocodes thousands of addresses through Nominatim at 1 request per second, which takes hours. We share the cleaned outputs so you can skip that step.
 
-```
-SafePath/
-├── data/                   # not tracked in git — download per Data setup below
-├── docs/
-│   ├── methodology.md      # full technical pipeline write up
-│   ├── status/             # one short weekly status file per week (week4_status.md, week5_status.md, ...)
-│   └── ...                 # SDPD reference files (CSV/PDF)
-├── notebooks/              # data preprocessing notebooks (one per dataset)
-├── src/                    # planned: reusable Python modules (scoring, routing). Empty for now.
-├── app/                    # planned: Streamlit frontend. Empty for now.
-├── requirements.txt
-└── README.md
+### Step 1. Make the local data folder
+
+Create `data/processed/` at the repo root. The notebooks read from `../data/processed/...` so the folder must live there. It is gitignored on purpose because the files are too large for GitHub.
+
+```bash
+mkdir -p data/processed
 ```
 
-`src/` and `app/` are placeholders today. Moving the proven scoring and routing logic out of the notebooks into `src/`, and starting the Streamlit app in `app/`, is the next step. See the latest file in `docs/status/` for the current week. You will also create a local data/processed/ folder at the repo root. It is gitignored. See Data setup section.
+### Step 2. Download from Google Drive
 
-## Datasets
+Open the team folder: [SafePath processed data](https://drive.google.com/drive/folders/1DSxQlvn6lq-D_tax9uDd42b5rNIIyQQ8?usp=sharing).
 
-Three public datasets feed the project. We use processed versions of all three.
+Download all three files into `data/processed/`:
 
-- **San Diego Police Calls for Service** : incident reports from the SDPD with date, time, call type, priority, and address. We use this for crime density and severity along walking routes.
-- **U.S. Walkability Index (EPA)** : a 1–20 score per Census block group capturing street connectivity, transit access, and land-use mix.
-- **Census TIGER Block Group Boundaries (CA, 2020)** : polygon shapes for every California Census block group. We merge these with the Walkability Index so each block group has both a score and a geographic shape.
+| File | What it is | Do not delete |
+| - | - | - |
+| `crime_final_gdf.gpkg` | geocoded crime points | |
+| `walkability_final_gdf.gpkg` | block group polygons with walkability scores | |
+| `geocode_cache.json` | cached Nominatim lookups | yes |
 
-Detailed explanations of what each column means and how it feeds into scoring are in [`docs/methodology.md`](docs/methodology.md).
+### Step 3. Sanity check
 
-## Data setup
-
-The preprocessing notebooks have already been run and the results are shared in Google Drive. **You do not need to download the raw datasets or rerun preprocessing** — just download the three processed files.
-
-**Why we share processed files:** the crime preprocessing notebook geocodes tens of thousands of unique addresses through Nominatim, which rate-limits to one request per second. From scratch it takes hours. The raw SDPD CSV alone is several hundred MB and requires accounts on the City of San Diego open data portal, Kaggle, and the Census FTP. Sharing the cleaned outputs skips all of that.
-
-### Step 1 — Make the data folder
-
-Create `data/processed/` at the repo root, next to `notebooks/`. The notebooks read from `../data/processed/...`, so the folder must sit there for the code to work. The folder is gitignored on purpose because the files are too large for GitHub.
-
-### Step 2 — Download the processed files
-
-From the Google Drive folder created by Matthew:
-
-**https://drive.google.com/drive/folders/1DSxQlvn6lq-D_tax9uDd42b5rNIIyQQ8?usp=sharing**
-
-Place all three in `data/processed/`:
-
-- `crime_final_gdf.gpkg` : geocoded crime points
-- `walkability_final_gdf.gpkg` : block group polygons with walkability scores
-- `geocode_cache.json` : cached Nominatim lookups (do not delete; lets re-runs of the preprocessing notebook resume instead of re-geocoding from zero)
-
-### Step 3 — Sanity check
-
-Your folder should look like:
+Your folder should now look like:
 
 ```
 data/processed/
@@ -94,27 +69,56 @@ data/processed/
   geocode_cache.json
 ```
 
-You're done. The scoring/routing work reads directly from `data/processed/`.
+Done. The scoring and routing work reads from this folder.
 
-### Optional — rerun preprocessing from raw data
+For deeper preprocessing details, see [`docs/02_data_cleaning.md`](docs/02_data_cleaning.md).
 
-Only needed if you want to refresh the data (e.g., a newer year of SDPD calls). Steps and download links are in [`docs/methodology.md`](docs/methodology.md#optional--rerun-from-raw-data).
+## Repo layout
 
-A note on what "done" means for the data: the processed files load cleanly, columns are standardized, every crime row has coordinates, and every block group has a score and a polygon. That's *technically* clean. Whether the data is *analytically* sufficient — whether crime calls for service is the right signal for "feeling unsafe", whether NatWalkInd captures the right notion of "comfort", whether 2026 Q1 is enough history — is open and worth interrogating as the scoring work progresses.
+```
+SafePath/
+├── README.md                    you are here
+├── requirements.txt
+├── .gitignore
+├── notebooks/                   preprocessing notebooks
+│   ├── crime-df-preprocessing.ipynb
+│   └── walkability-df-preprocessing.ipynb
+├── docs/                        the 5 step learning path
+│   ├── 00_project_map.md
+│   ├── 01_data_sources.md
+│   ├── 02_data_cleaning.md
+│   ├── 03_feature_engineering.md
+│   ├── 04_scoring_methodology.md
+│   ├── status.md
+│   ├── status/                  older weekly snapshots
+│   └── references/              SDPD code books (CSV/PDF)
+├── src/                         planned, empty for now
+└── app/                         planned, empty for now
+```
 
-## Reference documents (in `docs/`)
+## Reference materials
 
-External documentation we use to interpret the data.
+External docs we use to interpret the data:
 
-- [SDPD Call Type Codes](https://data.sandiego.gov/datasets/police-calls-call-types/) — definitions for all 234 call type codes
-- [SDPD Disposition Codes](https://data.sandiego.gov/datasets/police-calls-disposition-codes/) — definitions for disposition codes (A, R, U, K, etc.)
-- [SDPD Dispatch Priority Definitions](https://seshat.datasd.org/police_calls_for_service/pd_cfs_priority_defs_datasd.pdf) — priority levels 0–4 and 9
-- [EPA Smart Location Database Technical Documentation v3.0](https://www.epa.gov/system/files/documents/2023-10/epa_sld_3.0_technicaldocumentationuserguide_may2021_0.pdf) — full data dictionary including `NatWalkInd`
+| Source | Use |
+| - | - |
+| [SDPD Call Type Codes](https://data.sandiego.gov/datasets/police-calls-call-types/) | definitions for all 234 call type codes |
+| [SDPD Disposition Codes](https://data.sandiego.gov/datasets/police-calls-disposition-codes/) | what each disposition letter means |
+| [SDPD Priority Definitions (PDF)](https://seshat.datasd.org/police_calls_for_service/pd_cfs_priority_defs_datasd.pdf) | priority levels 0 to 4 and 9 |
+| [EPA Smart Location Database v3.0 (PDF)](https://www.epa.gov/system/files/documents/2023-10/epa_sld_3.0_technicaldocumentationuserguide_may2021_0.pdf) | full data dictionary including `NatWalkInd` |
 
-The first three call-type/disposition/priority files are also bundled in `docs/` as CSV/PDF for offline reference.
+The first three are also bundled offline in [`docs/references/`](docs/references/).
+
+## Team
+
+5 people. Lead: Vanshika. This week's owners are tracked in [`docs/status.md`](docs/status.md).
 
 ## Where to read more
 
-- [`docs/methodology.md`](docs/methodology.md) : full technical pipeline, scoring math, edge attributes, GeoPandas walkthrough.
-- [`docs/status/`](docs/status/) : short weekly status files, one per week. Read the most recent one to see what is in flight.
-- [`notebooks/`](notebooks/) Notebooks themselves : the markdown cells inside `notebooks/crime-df-preprocessing.ipynb` and `notebooks/walkability-df-preprocessing.ipynb` document each preprocessing decision in context.
+| You want to know about | Open |
+| - | - |
+| Where each dataset comes from | [`01_data_sources.md`](docs/01_data_sources.md) |
+| How data gets cleaned | [`02_data_cleaning.md`](docs/02_data_cleaning.md) |
+| How features get attached to street edges | [`03_feature_engineering.md`](docs/03_feature_engineering.md) |
+| The scoring formula and route logic | [`04_scoring_methodology.md`](docs/04_scoring_methodology.md) |
+| What is in flight this week | [`status.md`](docs/status.md) |
