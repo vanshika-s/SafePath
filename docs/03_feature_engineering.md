@@ -151,7 +151,7 @@ G[u][v][k]["lighting_score"] = ...
 
 We are not pickling enriched graphs to disk yet. Fine for the prototype. If routing gets slow because feature computation reruns every time, we will save the enriched graph as a `.graphml` file and document it here.
 
-## What to do this week (Ruan)
+## What to do this/next week
 
 1. Get crime + walkability features attached to a small slice of the OSM graph (one neighborhood is plenty).
 2. Add the L1 lighting feature on the same slice — source data is ready.
