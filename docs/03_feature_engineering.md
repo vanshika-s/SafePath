@@ -120,6 +120,14 @@ edges_3857["streetlight_count_50m"] = joined.groupby(level=0).size()
 
 **Caveat (UCSD interior).** The City layer is city-maintained streetlights. UCSD campus interior has 228 lights in the snapshot — non-zero but uneven. L4 tags those edges `ucsd_uncovered` and L5 falls back to neutral 0.5 instead of 0 so the router doesn't penalize campus-interior walks. UCSD campus polygon source still open (SANGIS vs. hand-built bbox) — pick one before computing L4.
 
+### UCSD campus incident feature (future, depends on Max)
+
+**Idea.** A UCSD-area-only advisory feature: count of recent geocoded incidents in a 100 m hex around each campus edge.
+
+**Status.** Annual Clery aggregates 2022–2024 are **extracted and validated** as an upper-bound sanity check (66 rows in `data/processed/ucsd_clery/ucsd_clery_stats_2022_2024.csv`). The point-level daily-log scrape is **not yet downloaded** — `data/raw/ucsd_police_logs/logs_20260501.csv` is empty. Until that scrape lands plus a UCSD location-string lookup table, no per-edge feature can be computed.
+
+**Where to resume.** [`docs/data/ucsd_crime/00_NEXT_SESSION.md`](data/ucsd_crime/00_NEXT_SESSION.md) — full handoff with schema, blockers, and the canonical decision that Clery aggregates are **only a validator**, never a per-edge feature.
+
 ### Bike comfort feature (future, depends on Max)
 
 **Idea.** Capture how protected the bike facility nearest to an edge is, and how much of the edge length is alongside it. Buffered/protected lanes correlate with calmer traffic, which usually feels more comfortable to a pedestrian.

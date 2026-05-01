@@ -11,6 +11,8 @@
 | San Diego street lights | cleaned | `data/processed/streetlights/streetlights_processed.geojson` | done | Max |
 | San Diego buffered bike + scooter lanes | not started | TBD | not started | Max |
 | OpenStreetMap walking network (via [OSMnx](https://osmnx.readthedocs.io)) | downloaded at runtime | not stored | downstream | Ruhan |
+| [UCSD Annual Clery Report](https://police.ucsd.edu/clery/index.html) (annual aggregates, 2022–2024) | extracted + validated | `data/processed/ucsd_clery/ucsd_clery_stats_2022_2024.csv` | done as **validator only** | Max |
+| [UCSD Daily Crime & Fire Log](https://www.ucsdpolice.com/policelog/index.html) (per-incident, point-level) | not started | TBD | not started | Max |
 
 ## 1. SDPD Calls for Service (crime)
 

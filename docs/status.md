@@ -28,6 +28,7 @@ Crime, walkability, and street lights are cleaned. The next milestone is scoring
 | Crime preprocessing | [`crime-df-preprocessing.ipynb`](../notebooks/crime-df-preprocessing.ipynb) → `crime_final_gdf.gpkg` |
 | Walkability preprocessing | [`walkability-df-preprocessing.ipynb`](../notebooks/walkability-df-preprocessing.ipynb) → `walkability_final_gdf.gpkg` |
 | Streetlight cleaning + validation | `src/data/get_streetlights.py` + `src/data/clean_streetlights.py` → `data/processed/streetlights/streetlights_processed.geojson` (55,506 active lights, validation + tie-out PASS, snapshot 2026-04-30) |
+| UCSD Clery aggregates extracted + validated | `data/processed/ucsd_clery/ucsd_clery_stats_2022_2024.csv` (66 rows: 22 offenses × 3 years, all 5/5 validation + 5/5 source-tieout PASS). Source: UCSD Annual Security & Fire Safety Report 2025 §XVI. Use as **validator** for the daily-log scrape, not as a point feature — see [`docs/data/ucsd_crime/00_NEXT_SESSION.md`](data/ucsd_crime/00_NEXT_SESSION.md) §4. |
 | Crime + walkability files shared | team [Google Drive](https://drive.google.com/drive/folders/1DSxQlvn6lq-D_tax9uDd42b5rNIIyQQ8?usp=sharing) |
 | Repo docs split into 5 step learning path | `docs/00` through `docs/04` plus this file |
 
@@ -48,6 +49,7 @@ Crime, walkability, and street lights are cleaned. The next milestone is scoring
 | Ajay | weight comparison | needs at least one draft scoring formula from Matthew |
 | Bike comfort feature | Max finishing bike-lane cleaning |
 | Lighting L4 (`lighting_data_quality_flag`) | UCSD campus polygon source decision (SANGIS vs. hand-built bbox) |
+| UCSD `campus_incident_score` (F10) | daily UCSD Police log scrape not yet downloaded ([`data/raw/ucsd_police_logs/logs_20260501.csv`](../data/raw/ucsd_police_logs/logs_20260501.csv) is empty) + location-string lookup table not yet built. See [`docs/data/ucsd_crime/00_NEXT_SESSION.md`](data/ucsd_crime/00_NEXT_SESSION.md) §5. |
 
 ## Open questions to resolve this week
 
