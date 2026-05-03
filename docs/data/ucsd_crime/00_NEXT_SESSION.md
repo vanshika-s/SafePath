@@ -17,25 +17,6 @@
 | UCSD campus polygon | **NOT chosen** | candidates: [SANGIS regional GIS](https://rdw.sandag.org/Account/gisdtview) `university_boundary` layer **OR** hand-built bbox `(-117.245, 32.867, -117.220, 32.892)` |
 | `SOURCE_METADATA.yaml` for UCSD raw | missing | analogous to [`data/raw/streetlights/SOURCE_METADATA.yaml`](../../../data/raw/streetlights/SOURCE_METADATA.yaml) |
 
-## 2. Agent execution log (last session)
-
-Mirrors the per-phase agent table in [`docs/data/streetlights/00_WORKFLOW_PLAN.md`](../streetlights/00_WORKFLOW_PLAN.md). All agents below are role-instruction `.md` files — none are spawned as live sub-agents.
-
-| Phase | Agent | Location | Output |
-| - | - | - | - |
-| 0 | `project-manager` | [awesome-claude-code-subagents/categories/08-business-product/project-manager.md](https://github.com/VoltAgent/awesome-claude-code-subagents/blob/main/categories/08-business-product/project-manager.md) | scope: UCSD crime → F10 |
-| 0 | `agent-organizer` | 09-meta-orchestration | agent-set selection (this table) |
-| 0 | `workflow-orchestrator` | 09-meta-orchestration | DAG and checkpoints |
-| 0 | `context-manager` | 09-meta-orchestration | this doc |
-| 1 | `search-specialist` | 10-research-analysis | located Clery PDF in `data/raw/ucsd_police_logs/` |
-| 1 | `data-researcher` | 10-research-analysis | confirmed PDF is UCSD ASFSR 2025 Reissued 2026-02-26 |
-| 2 | `data-engineer` | 05-data-ai | `pdftotext -layout -f 141 -l 160` → structured long CSV |
-| 3 | `data-explorer` | ai-analyst-main/agents | inventory: 66 rows, 22 offenses, 6 categories, 15 nullable cells (by design) |
-| 5 | `validation` | ai-analyst-main/agents | schema + year/category domain + 2 logical invariants → PASS |
-| 5 | `source-tieout` | ai-analyst-main/agents | 5 independent spot-checks vs fresh `pdftotext` → 5/5 PASS |
-| 4, 5 | `qa-expert` | 04-quality-security | 3 WARN caveats logged (see §3) |
-| 6 | `business-analyst` | 08-business-product | decision: Clery = validator, daily log = point source (see §4) |
-| 7 | `technical-writer` | 08-business-product | this doc |
 
 ## 3. Validation status of the Clery CSV — what consumers must respect
 
@@ -65,7 +46,7 @@ The Clery PDF gives **annual aggregates over 4 named geographies** ([34 CFR 668.
 | Non-Campus | scattered off-site polygons | no |
 | Public Property | ~305 m (1000 ft) buffer along campus boundary | no |
 
-**Decision (`business-analyst`, 2026-05-01):**
+**Decision (2026-05-01):**
 - `campus_incident_score` (F10) gets its **points** from the UCSD Daily Crime & Fire Log (the still-empty daily scrape file).
 - The Clery CSV is the **upper-bound validator** for that scrape: e.g. *"daily-log Rape incidents in 2024 should be ≤ 35"* (the Clery 2024 total).
 - **Do NOT** divide aggregate counts by polygon area to fake per-edge densities — incidents cluster, they don't spread uniformly.
