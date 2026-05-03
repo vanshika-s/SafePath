@@ -14,7 +14,7 @@ Past weekly snapshots live in [`status/`](status/). This file is the single sour
 | - | - | - | - |
 | Matthew | Design the weighted score for safety + convenience | [`04_scoring_methodology.md`](04_scoring_methodology.md) | in progress |
 | Max | Clean the buffered bike + scooter lane dataset | [`02_data_cleaning.md`](02_data_cleaning.md) | not started |
-| Ruhan | Feature engineering + initial scoring on sample routes (now includes lighting) | [`03_feature_engineering.md`](03_feature_engineering.md), [`04_scoring_methodology.md`](04_scoring_methodology.md) | not started |
+| Ruhan | Test initial scoring on sample routes (per [28 April meeting](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing)) | [`03_feature_engineering.md`](03_feature_engineering.md), [`04_scoring_methodology.md`](04_scoring_methodology.md) | not started |
 | Ajay | Compare how different weights change route results | [`04_scoring_methodology.md`](04_scoring_methodology.md) | blocked on Matthew |
 
 ## Big picture
@@ -35,7 +35,7 @@ Crime, walkability, and street lights are cleaned. The next milestone is scoring
 ## In progress
 
 1. **Matthew** is drafting the weighting between crime, walkability, lighting, bike comfort, and road class.
-2. **Ruhan** is wiring up the OSM walking graph and attaching crime + walkability features to a small test area. Lighting (L1 from `docs/data/streetlights/FEATURE_CONTRACT.md`) can be added on the same slice now that the source data is ready.
+2. **OSMnx walking-graph wiring + per-edge feature attachment is NOT IMPLEMENTED.** No notebook or `.py` file in the repo computes any feature today. Ruhan's documented assignment is "test initial scoring on sample routes" — the upstream feature work needs an explicit owner.
 
 ## Not started
 

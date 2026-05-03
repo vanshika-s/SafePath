@@ -2,6 +2,8 @@
 
 > **TL;DR.** SafePath gives every street segment a `safety_score` (0 to 1, 1 is best), turns that into a `route_cost` the routing algorithm minimizes, then runs shortest path 3 times: fastest, safest, balanced. This doc is future facing. TODOs mark things still being decided.
 
+> **NOT IMPLEMENTED.** No scoring or routing code exists in the repo yet. This file is a spec; nothing in `src/` or `notebooks/` computes `safety_score`, `route_cost`, or any shortest-path call. F10 (`campus_incident_score`) and F11 (`is_on_ucsd_campus`) are listed in [`03_feature_engineering.md`](03_feature_engineering.md) but **are not part of the formula below** — the team must decide before building scoring code: drop F10/F11 OR add a 6th weight slot.
+
 **This week's owners:**
 
 | Person | Task |

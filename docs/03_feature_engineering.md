@@ -2,7 +2,9 @@
 
 > **TL;DR.** Each cleaned dataset becomes one or two numbers attached to each street edge in the OSM walking network. The scoring step only reads those numbers, never the raw data.
 
-**Owner:** Ruhan
+**Owner:** unassigned in writing. Per the [28 April meeting minutes](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing), Ruhan was assigned *"Test initial scoring on sample routes"*; nobody is explicitly the documented owner of the broader feature-engineering workflow yet.
+
+> **NOT IMPLEMENTED.** This document is a *spec*, not a code reference. There is no committed Python module or notebook that builds the OSMnx walking graph, attaches features to edges, or computes any of the features below. All recipes are pseudocode for whoever picks this up.
 
 ## The mental model
 
