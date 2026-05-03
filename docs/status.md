@@ -1,6 +1,6 @@
 # Status
 
-> **TL;DR.** Crime, walkability, and **street lights are cleaned**. Next: Max cleans bike lanes; Matthew designs the scoring weights; Ruhan prototypes scoring on a test neighborhood (now with lighting); Ajay compares weight settings.
+> **TL;DR.** Crime, walkability, and **street lights are cleaned**. Next: Max cleans bike lanes, Matthew designs the scoring weights, Ruhan tests scoring on sample routes (per [28 April meeting](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing)), Ajay compares weight settings. **Owner of the upstream OSM-graph wiring + per-edge feature attachment is currently unassigned.**
 
 > **Team norms ([28 April meeting](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing)):** post a Discord update after every meaningful change, and react to every message in `#safepath` so the sender knows it was seen.
 
@@ -34,7 +34,7 @@ Crime, walkability, and street lights are cleaned. The next milestone is scoring
 
 ## In progress
 
-1. **Matthew** is drafting the weighting between crime, walkability, lighting, bike comfort, and road class.
+1. **Matthew** is drafting the weighting between crime, walkability, lighting, bike comfort, and road class. (Self-reported — no code committed yet; verify directly with Matthew before marking done.)
 2. **OSMnx walking-graph wiring + per-edge feature attachment is NOT IMPLEMENTED.** No notebook or `.py` file in the repo computes any feature today. Ruhan's documented assignment is "test initial scoring on sample routes" — the upstream feature work needs an explicit owner.
 
 ## Not started

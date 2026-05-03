@@ -6,11 +6,11 @@
 
 | Dataset | Status | Output file | Progress | Owner |
 | - | - | - | - | - |
-| [SDPD Calls for Service](https://data.sandiego.gov/datasets/police-calls-for-service/) | cleaned | `data/processed/crime_final_gdf.gpkg` | done | Matthew |
-| [EPA Walkability Index](https://www.kaggle.com/datasets/stacey06/u-s-walkability-index) + [Census TIGER](https://www2.census.gov/geo/tiger/TIGER2020/BG/tl_2020_06_bg.zip) | cleaned | `data/processed/walkability_final_gdf.gpkg` | done | Matthew |
+| [SDPD Calls for Service](https://data.sandiego.gov/datasets/police-calls-for-service/) | cleaned | `data/processed/crime_final_gdf.gpkg` | done | see `git log notebooks/crime-df-preprocessing.ipynb` (no meeting-minute or design-doc owner) |
+| [EPA Walkability Index](https://www.kaggle.com/datasets/stacey06/u-s-walkability-index) + [Census TIGER](https://www2.census.gov/geo/tiger/TIGER2020/BG/tl_2020_06_bg.zip) | cleaned | `data/processed/walkability_final_gdf.gpkg` | done | see `git log notebooks/walkability-df-preprocessing.ipynb` (no meeting-minute or design-doc owner) |
 | San Diego street lights | cleaned | `data/processed/streetlights/streetlights_processed.geojson` | done | Max |
 | San Diego buffered bike + scooter lanes | not started | TBD | not started | Max |
-| OpenStreetMap walking network (via [OSMnx](https://osmnx.readthedocs.io)) | downloaded at runtime | not stored | downstream | Ruhan |
+| OpenStreetMap walking network (via [OSMnx](https://osmnx.readthedocs.io)) | downloaded at runtime | not stored | downstream | unassigned |
 | [UCSD Annual Clery Report](https://police.ucsd.edu/clery/index.html) (annual aggregates, 2022–2024) | extracted; **validator only — not a feature input** | `data/processed/ucsd_clery/ucsd_clery_stats_2022_2024.csv` | aggregate counts only; cannot be turned into per-edge features | Max |
 | [UCSD Daily Crime & Fire Log](https://www.ucsdpolice.com/policelog/index.html) (per-incident, point-level — **the actual feature source**) | **not started** — `data/raw/ucsd_police_logs/logs_*.csv` is empty | TBD | blocks `campus_incident_score` (F10) | Max |
 
@@ -87,7 +87,7 @@
 
 **Why it matters.** This is the actual map we route through. Every other dataset gets attached to OSM edges so the routing engine has one place to read scores from.
 
-**Owner.** Touched by Ruhan in feature engineering. Used downstream in scoring.
+**Owner.** Unassigned. Per the [28 April meeting minutes](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing), Ruhan was assigned only "test initial scoring on sample routes" — nobody is the documented owner of OSM-graph wiring or feature engineering. Used downstream in scoring once an owner is named.
 
 ## A note on data freshness
 

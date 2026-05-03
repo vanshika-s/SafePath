@@ -6,6 +6,8 @@
 
 > **NOT IMPLEMENTED.** This document is a *spec*, not a code reference. There is no committed Python module or notebook that builds the OSMnx walking graph, attaches features to edges, or computes any of the features below. All recipes are pseudocode for whoever picks this up.
 
+> **Provenance of numeric defaults.** The buffer radii (50 m for crime, 50 m for lighting, 15 m for bike lanes), the ~10 m midline sample spacing, the p95 normalization choice, and the class-value table for bike facilities are **inherited defaults from a prior planning session**. They are not sourced from any team meeting or from the [design doc](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing). Treat them as proposals open for team review, not as agreed values.
+
 ## The mental model
 
 ```

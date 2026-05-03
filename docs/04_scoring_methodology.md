@@ -4,6 +4,8 @@
 
 > **NOT IMPLEMENTED.** No scoring or routing code exists in the repo yet. This file is a spec; nothing in `src/` or `notebooks/` computes `safety_score`, `route_cost`, or any shortest-path call. F10 (`campus_incident_score`) and F11 (`is_on_ucsd_campus`) are listed in [`03_feature_engineering.md`](03_feature_engineering.md) but **are not part of the formula below** — the team must decide before building scoring code: drop F10/F11 OR add a 6th weight slot.
 
+> **Provenance of numeric defaults.** The route-cost amplifier (factor `4` in `route_cost = length * (1 + 4 * (1 - safety_score))`), the balanced-route blend default (`alpha = 0.5`), and the daytime cutoff that splits `crime_score_day` from `crime_score_night` (`[06:00, 18:00)`) are **inherited defaults from a prior planning session**. They are not sourced from any team meeting or from the [design doc](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing). Treat them as proposals open for team review, not as agreed values. Open question #1 in [`status.md`](status.md) explicitly leaves the daytime cutoff for the team to decide.
+
 **This week's owners:**
 
 | Person | Task |

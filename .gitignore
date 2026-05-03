@@ -46,3 +46,7 @@ ENV/
 # CSV files everywhere except docs/
 *.csv
 !docs/*.csv
+
+# Local-only learning docs (do not push)
+docs/SAFEPATH_OVERVIEW.md
+docs/SAFEPATH_GROUND_TRUTH.md
