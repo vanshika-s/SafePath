@@ -13,6 +13,10 @@ networkx        # graph data structure and pathfinding (Dijkstra/A*) used by OSM
 # Geocoding
 geopy           # Nominatim geocoder — converts street addresses to lat/lon coordinates
 
+# Web scraping (used by scripts/scrape_ucsd_police_logs.py)
+requests        # HTTP client for the UCSD police log scraper
+beautifulsoup4  # HTML parser for the UCSD police log table
+
 # Visualization (notebooks)
 matplotlib      # base plotting library used in exploratory notebooks
 seaborn         # statistical visualizations built on top of matplotlib

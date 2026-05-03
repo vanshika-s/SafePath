@@ -75,6 +75,8 @@ with w_crime + w_walk + w_light + w_bike + w_road = 1
 and  crime_component = crime_score_day if daytime else crime_score_night
 ```
 
+> **`daytime` is currently NOT IMPLEMENTED in code.** The proposed cutoff (per v0 default, see Provenance banner above) is `daytime ∈ [06:00, 18:00)` in **local San Diego time (America/Los_Angeles)**, with `nighttime` covering the complement `[00:00, 06:00) ∪ [18:00, 24:00)`. When scoring code is written, expose this as a single named constant (e.g. `DAYTIME_HOURS = range(6, 18)`) so the team can tune one place. The "user picks vs system clock" question is still open — see [`status.md`](status.md) Open Question #1.
+
 **TODOs for Matthew:**
 
 1. Pick the 5 weights. Document the reasoning.

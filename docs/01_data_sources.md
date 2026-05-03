@@ -6,8 +6,8 @@
 
 | Dataset | Status | Output file | Progress | Owner |
 | - | - | - | - | - |
-| [SDPD Calls for Service](https://data.sandiego.gov/datasets/police-calls-for-service/) | cleaned | `data/processed/crime_final_gdf.gpkg` | done | see `git log notebooks/crime-df-preprocessing.ipynb` (no meeting-minute or design-doc owner) |
-| [EPA Walkability Index](https://www.kaggle.com/datasets/stacey06/u-s-walkability-index) + [Census TIGER](https://www2.census.gov/geo/tiger/TIGER2020/BG/tl_2020_06_bg.zip) | cleaned | `data/processed/walkability_final_gdf.gpkg` | done | see `git log notebooks/walkability-df-preprocessing.ipynb` (no meeting-minute or design-doc owner) |
+| [SDPD Calls for Service](https://data.sandiego.gov/datasets/police-calls-for-service/) | cleaned | `data/processed/crime_final_gdf.gpkg` | done | Matthew (per [`status/week4_status.md`](status/week4_status.md)) |
+| [EPA Walkability Index](https://www.kaggle.com/datasets/stacey06/u-s-walkability-index) + [Census TIGER](https://www2.census.gov/geo/tiger/TIGER2020/BG/tl_2020_06_bg.zip) | cleaned | `data/processed/walkability_final_gdf.gpkg` | done | Matthew (per [`status/week4_status.md`](status/week4_status.md)) |
 | San Diego street lights | cleaned | `data/processed/streetlights/streetlights_processed.geojson` | done | Max |
 | San Diego buffered bike + scooter lanes | not started | TBD | not started | Max |
 | OpenStreetMap walking network (via [OSMnx](https://osmnx.readthedocs.io)) | downloaded at runtime | not stored | downstream | unassigned |
