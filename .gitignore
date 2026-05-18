@@ -47,3 +47,6 @@ notebooks/cache/
 # CSV files everywhere except docs/
 *.csv
 !docs/*.csv
+
+# tif files
+*.tif
