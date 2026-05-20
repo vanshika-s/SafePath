@@ -98,7 +98,10 @@ def clean(raw_fc: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any], dict[
                 "sap_obj_nr": sap,
                 "status": status,
                 "mapng_stat_cd": mapng,
-                "drawing_date": props.get("DRAWING_DATE"),
+                # drawing_date column removed: source schema uses DRAWING_NO
+                # (100% null in 2026-04-30 snapshot), not DRAWING_DATE. The
+                # old column was always None. For a freshness signal use
+                # props["INST_YR"] (97% populated) or last_edited_date (31%).
                 "dup_sapobjnr_flag": dup_flag,
                 "data_quality_flag": "ok",
             },

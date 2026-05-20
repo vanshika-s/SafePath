@@ -2,6 +2,10 @@
 
 > **TL;DR.** SafePath gives every street segment a `safety_score` (0 to 1, 1 is best), turns that into a `route_cost` the routing algorithm minimizes, then runs shortest path 3 times: fastest, safest, balanced. This doc is future facing. TODOs mark things still being decided.
 
+> **NOT IMPLEMENTED.** No scoring or routing code exists in the repo yet. This file is a spec; nothing in `src/` or `notebooks/` computes `safety_score`, `route_cost`, or any shortest-path call. F10 (`campus_incident_score`) and F11 (`is_on_ucsd_campus`) are listed in [`03_feature_engineering.md`](03_feature_engineering.md) but **are not part of the formula below** — the team must decide before building scoring code: drop F10/F11 OR add a 6th weight slot.
+
+> **Provenance of numeric defaults.** The route-cost amplifier (factor `4` in `route_cost = length * (1 + 4 * (1 - safety_score))`), the balanced-route blend default (`alpha = 0.5`), and the daytime cutoff that splits `crime_score_day` from `crime_score_night` (`[06:00, 18:00)`) are **inherited defaults from a prior planning session**. They are not sourced from any team meeting or from the [design doc](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing). Treat them as proposals open for team review, not as agreed values. Open question #1 in [`status.md`](status.md) explicitly leaves the daytime cutoff for the team to decide.
+
 **This week's owners:**
 
 | Person | Task |
@@ -70,6 +74,8 @@ safety_score = w_crime * crime_component
 with w_crime + w_walk + w_light + w_bike + w_road = 1
 and  crime_component = crime_score_day if daytime else crime_score_night
 ```
+
+> **`daytime` is currently NOT IMPLEMENTED in code.** The proposed cutoff (per v0 default, see Provenance banner above) is `daytime ∈ [06:00, 18:00)` in **local San Diego time (America/Los_Angeles)**, with `nighttime` covering the complement `[00:00, 06:00) ∪ [18:00, 24:00)`. When scoring code is written, expose this as a single named constant (e.g. `DAYTIME_HOURS = range(6, 18)`) so the team can tune one place. The "user picks vs system clock" question is still open — see [`status.md`](status.md) Open Question #1.
 
 **TODOs for Matthew:**
 
