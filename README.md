@@ -36,40 +36,55 @@ jupyter notebook notebooks/
 
 ## Data setup (one time)
 
-> **Why download instead of regenerating?** The crime preprocessing notebook geocodes thousands of addresses through Nominatim at 1 request per second, which takes hours. We share the cleaned outputs so you can skip that step.
+> **Why download instead of regenerating?** The crime preprocessing notebook geocodes thousands of addresses through Nominatim at 1 request per second, which takes hours. The graph and scoring outputs take even longer. We share the cleaned outputs so you can skip all of that.
 
-### Step 1. Make the local data folder
+> **Note on data and git:** All data files live outside git in Google Drive. The `data/` folder is gitignored. Raw source files (streetlights, police calls, EPA, census) and all processed outputs are stored in the team Drive folder below.
 
-Create `data/processed/` at the repo root. The notebooks read from `../data/processed/...` so the folder must live there. It is gitignored on purpose because the files are too large for GitHub.
+### Step 1. Make the local data folders
 
 ```bash
-mkdir -p data/processed
+mkdir -p data/processed/streetlights
 ```
 
 ### Step 2. Download from Google Drive
 
-Open the team folder: [SafePath processed data](https://drive.google.com/drive/folders/1DSxQlvn6lq-D_tax9uDd42b5rNIIyQQ8?usp=sharing).
+Open the team folder: [SafePath data](https://drive.google.com/drive/folders/1DSxQlvn6lq-D_tax9uDd42b5rNIIyQQ8?usp=sharing).
 
-Download all three files into `data/processed/`:
+**Processed outputs** — download into `data/processed/`:
 
-| File | What it is | Do not delete |
+| File | Size | What it is | Do not delete |
+| - | - | - | - |
+| `crime_final_gdf.gpkg` | 98 MB | geocoded, scored crime points | |
+| `walkability_final_gdf.gpkg` | 5.5 MB | block group polygons with walkability scores | |
+| `edge_scores_infrastructure.csv` | 50 MB | per-edge crime, walk, and infrastructure scores | |
+| `sd_walk_graph.graphml` | 300 MB | San Diego OSM walking network graph | |
+| `geocode_cache.json` | 1.3 MB | cached Nominatim lookups | yes |
+
+**Processed streetlights** — download into `data/processed/streetlights/`:
+
+| File | Size | What it is |
 | - | - | - |
-| `crime_final_gdf.gpkg` | geocoded crime points | |
-| `walkability_final_gdf.gpkg` | block group polygons with walkability scores | |
-| `geocode_cache.json` | cached Nominatim lookups | yes |
+| `streetlights_processed.geojson` | 15 MB | cleaned streetlight points with quality flags |
+
+> **Raw source files** (streetlights, police calls, EPA, census) are public datasets — download them directly from their original sources. See [`docs/01_data_sources.md`](docs/01_data_sources.md) for links.
 
 ### Step 3. Sanity check
 
 Your folder should now look like:
 
 ```
-data/processed/
-  crime_final_gdf.gpkg
-  walkability_final_gdf.gpkg
-  geocode_cache.json
+data/
+  processed/
+    crime_final_gdf.gpkg
+    walkability_final_gdf.gpkg
+    edge_scores_infrastructure.csv
+    sd_walk_graph.graphml
+    geocode_cache.json
+    streetlights/
+      streetlights_processed.geojson
 ```
 
-Done. The scoring and routing work reads from this folder.
+Done. The scoring and routing notebooks read from these folders.
 
 For deeper preprocessing details, see [`docs/02_data_cleaning.md`](docs/02_data_cleaning.md).
 
