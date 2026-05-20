@@ -9,7 +9,7 @@ pyproj          # coordinate reference system transformations required by GeoPan
 fiona           # file I/O backend for GeoPandas (.shp, .gpkg read/write)
 osmnx           # downloads and models the OpenStreetMap walking network as a graph
 networkx        # graph data structure and pathfinding (Dijkstra/A*) used by OSMnx and the router
-suntime         # compute precise sunrise/sunset times to determine day and night
+astral          # compute precise sunrise/sunset times to determine day and night
 
 # Geocoding
 geopy           # Nominatim geocoder — converts street addresses to lat/lon coordinates
