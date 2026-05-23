@@ -21,7 +21,7 @@ def _gdrive_download(file_id: str, output: str) -> None:
         raise ImportError("gdown is required. Run: pip install gdown")
     os.makedirs(os.path.dirname(output), exist_ok=True)
     url = f"https://drive.google.com/uc?id={file_id}&confirm=t"
-    gdown.download(url, output=output, quiet=False, fuzzy=True)
+    gdown.download(url, output=output, quiet=False)
 
 
 def download_data() -> None:
