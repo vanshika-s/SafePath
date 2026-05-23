@@ -1,19 +1,3 @@
-"""
-Data loader for SafePath — Streamlit Community Cloud deployment.
-
-Setup (run once locally in scoring-engine.ipynb):
-    import shutil
-    shutil.make_archive("data/processed/fast_graph", "zip", "data/processed/fast_graph")
-
-Upload fast_graph.zip and crime_final_gdf.gpkg to Google Drive (public share links).
-
-Local development — add to .streamlit/secrets.toml (never commit this file):
-    GDRIVE_FAST_GRAPH_ID = "your_file_id_here"
-    GDRIVE_CRIME_ID      = "your_file_id_here"
-
-Streamlit Cloud — add the same keys in App Settings → Secrets.
-"""
-
 import os
 import zipfile
 import geopandas as gpd
@@ -23,29 +7,14 @@ _MARKER         = f"{_FAST_GRAPH_DIR}/node_ids.npy"
 _ZIP_PATH       = "data/processed/fast_graph.zip"
 _CRIME_PATH     = "data/processed/crime_final_gdf.gpkg"
 
-# Module-level singletons — loaded once, reused for every request.
+_GDRIVE_FAST_GRAPH_ID = "1LTBFmsWq0YpY8GGColvX3lLxhUhumLyH"
+_GDRIVE_CRIME_ID      = "1xD35hpR1NM5Sry_7Mxr0-gJRN-BllVEr"
+
 _graph = None
 _crime = None
 
 
-def _get_secret(key: str) -> str:
-    """Read a secret from st.secrets (Streamlit Cloud) or os.environ (fallback)."""
-    try:
-        import streamlit as st
-        return st.secrets[key]
-    except Exception:
-        val = os.environ.get(key, "")
-        if not val:
-            raise EnvironmentError(
-                f"Missing secret: '{key}'. "
-                f"Add it to .streamlit/secrets.toml for local dev, "
-                f"or App Settings → Secrets on Streamlit Cloud."
-            )
-        return val
-
-
 def _gdrive_download(file_id: str, output: str) -> None:
-    """Download a file from Google Drive using gdown."""
     try:
         import gdown
     except ImportError:
@@ -56,34 +25,22 @@ def _gdrive_download(file_id: str, output: str) -> None:
 
 
 def download_data() -> None:
-    """Download missing data files from Google Drive.
-
-    Secrets required (set in .streamlit/secrets.toml or Streamlit Cloud):
-      GDRIVE_FAST_GRAPH_ID  →  fast_graph.zip
-      GDRIVE_CRIME_ID       →  crime_final_gdf.gpkg
-    """
-    graph_id = _get_secret("GDRIVE_FAST_GRAPH_ID")
-    crime_id = _get_secret("GDRIVE_CRIME_ID")
-
-    # Download and unzip fast graph
     if not os.path.exists(_MARKER):
         if not os.path.exists(_ZIP_PATH):
             print("Downloading fast_graph.zip from Google Drive...")
-            _gdrive_download(graph_id, _ZIP_PATH)
+            _gdrive_download(_GDRIVE_FAST_GRAPH_ID, _ZIP_PATH)
         print("Extracting fast_graph.zip...")
         with zipfile.ZipFile(_ZIP_PATH, "r") as z:
             z.extractall(_FAST_GRAPH_DIR)
         print("Fast graph ready.")
 
-    # Download crime points
     if not os.path.exists(_CRIME_PATH):
         print("Downloading crime_final_gdf.gpkg from Google Drive...")
-        _gdrive_download(crime_id, _CRIME_PATH)
+        _gdrive_download(_GDRIVE_CRIME_ID, _CRIME_PATH)
         print("Crime data ready.")
 
 
 def load_graph():
-    """Load RouteGraph from pre-built numpy files. ~300-500ms. Singleton."""
     global _graph
     if _graph is not None:
         return _graph
@@ -93,10 +50,6 @@ def load_graph():
 
 
 def load_crime_points() -> dict:
-    """Load crime points pre-split into day/night lists. Singleton.
-
-    Returns {"day": [(lat, lng), ...], "night": [(lat, lng), ...]}.
-    """
     global _crime
     if _crime is not None:
         return _crime
