@@ -35,7 +35,8 @@ def download_data():
         if not file_id:
             raise ValueError(f"No Google Drive ID set for {path}.")
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        gdown.download(id=file_id, output=path, quiet=False)
+        url = f"https://drive.google.com/uc?id={file_id}&confirm=t"
+        gdown.download(url, output=path, quiet=False, fuzzy=True)
 
 
 def load_graph():
