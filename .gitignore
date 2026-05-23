@@ -56,3 +56,6 @@ docs/SAFEPATH_GROUND_TRUTH.md
 
 # Local-only agent-system scratch (state, lessons, fix reports for next AI session)
 working/
+
+# Streamlit secrets — never commit
+.streamlit/secrets.toml

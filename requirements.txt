@@ -1,7 +1,12 @@
-# Streamlit frontend dependencies
-# For the FastAPI backend (deployed on Render), see requirements-backend.txt
-
-streamlit>=1.33.0
-streamlit-folium>=0.20.0
-folium>=0.16.0
-requests>=2.31.0
+streamlit==1.41.0
+streamlit-folium
+folium
+geopandas
+osmnx
+numpy
+scipy
+suntime
+python-dateutil
+geopy
+gdown
+networkx

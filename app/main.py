@@ -21,10 +21,6 @@ from src.api.day_night import is_night_now
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Pre-load graph + crime data before the first request is served."""
-    loader.download_data()
-    loader.load_graph()        # warms the singleton — subsequent calls are instant
-    loader.load_crime_points()
     yield
 
 
