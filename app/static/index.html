@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SafePath</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #111827;
+      color: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Navbar ── */
+    #navbar {
+      height: 50px;
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 10px;
+      flex-shrink: 0;
+      z-index: 1000;
+    }
+    #navbar .brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 17px; font-weight: 700; color: #f9fafb;
+    }
+    #navbar .dot { width: 10px; height: 10px; border-radius: 50%; background: #10b981; }
+    #tod-badge {
+      margin-left: auto;
+      font-size: 12px; color: #9ca3af;
+      display: flex; align-items: center; gap: 5px;
+    }
+    #tod-icon { font-size: 16px; }
+
+    /* ── Main layout ── */
+    #content { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 320px;
+      min-width: 320px;
+      background: #1f2937;
+      border-right: 1px solid #374151;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .panel-section {
+      padding: 16px;
+      border-bottom: 1px solid #374151;
+    }
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #6b7280;
+      margin-bottom: 10px;
+    }
+
+    /* ── Inputs ── */
+    .input-group { position: relative; margin-bottom: 8px; }
+    .input-icon {
+      position: absolute;
+      left: 12px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      pointer-events: none;
+      color: #6b7280;
+    }
+    .addr-input {
+      width: 100%;
+      background: #111827;
+      border: 1.5px solid #374151;
+      border-radius: 10px;
+      padding: 10px 12px 10px 34px;
+      font-size: 13px;
+      font-family: inherit;
+      color: #f3f4f6;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .addr-input:focus { border-color: #10b981; }
+    .addr-input::placeholder { color: #6b7280; }
+
+    /* Autocomplete dropdown */
+    .suggest-drop {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 10px;
+      overflow: hidden;
+      z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0,0,0,.5);
+      display: none;
+    }
+    .suggest-drop.open { display: block; }
+    .suggest-item {
+      padding: 9px 14px;
+      font-size: 12px;
+      color: #d1d5db;
+      cursor: pointer;
+      border-bottom: 1px solid #374151;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .suggest-item:last-child { border-bottom: none; }
+    .suggest-item:hover { background: #374151; color: #f9fafb; }
+
+    /* ── Find button ── */
+    #find-btn {
+      width: 100%;
+      margin-top: 4px;
+      padding: 11px;
+      background: #10b981;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity .15s, box-shadow .15s;
+      box-shadow: 0 2px 10px rgba(16,185,129,.35);
+    }
+    #find-btn:hover { opacity: .9; box-shadow: 0 4px 16px rgba(16,185,129,.45); }
+    #find-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Spinner ── */
+    #spinner { display: none; align-items: center; gap: 10px; padding: 10px 0; font-size: 13px; color: #9ca3af; }
+    #spinner.show { display: flex; }
+    .spin {
+      width: 18px; height: 18px;
+      border: 2px solid #374151;
+      border-top-color: #10b981;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ── */
+    #error-msg {
+      display: none;
+      background: #450a0a;
+      border: 1px solid #7f1d1d;
+      color: #fca5a5;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    #error-msg.show { display: block; }
+
+    /* ── Layer toggle ── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #9ca3af;
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-row input[type=checkbox] { accent-color: #10b981; width: 15px; height: 15px; cursor: pointer; }
+
+    /* ── Route cards ── */
+    #route-cards { display: none; flex-direction: column; gap: 8px; }
+    #route-cards.show { display: flex; }
+
+    .route-card {
+      border: 1.5px solid #374151;
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      background: #111827;
+    }
+    .route-card:hover { border-color: #4b5563; }
+    .route-card.active { border-color: var(--rc); background: #0d1117; }
+
+    .rc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .rc-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+    .rc-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .rc-stats { display: flex; gap: 14px; font-size: 12px; color: #9ca3af; }
+    .rc-val { color: #f3f4f6; font-weight: 500; }
+    .rc-score { font-size: 11px; background: #374151; padding: 2px 8px; border-radius: 8px; color: #9ca3af; }
+
+    /* ── Directions ── */
+    #directions-section { display: none; }
+    #directions-section.show { display: block; }
+
+    .dir-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      font-size: 12px;
+      font-weight: 600;
+      color: #9ca3af;
+      padding: 12px 0 4px;
+    }
+    .dir-header:hover { color: #d1d5db; }
+
+    #steps-list { padding-top: 4px; }
+    .dir-step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid #374151;
+    }
+    .dir-step:last-child { border-bottom: none; }
+    .dir-step-icon {
+      width: 28px; height: 28px;
+      background: #374151;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .dir-step-icon.dest { background: #1f2937; border: 1px solid #ef4444; }
+    .dir-step-body { flex: 1; }
+    .dir-step-instr { font-size: 12px; color: #e5e7eb; line-height: 1.4; font-weight: 500; }
+    .dir-step-dist  { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+    /* ── Map ── */
+    #map-container { flex: 1; position: relative; }
+    #map { width: 100%; height: 100%; }
+
+    /* Leaflet overrides */
+    .leaflet-control-zoom a { background: #1f2937 !important; color: #f3f4f6 !important; border-color: #374151 !important; }
+    .leaflet-control-zoom a:hover { background: #374151 !important; }
+    .leaflet-control-attribution { background: rgba(17,24,39,.8) !important; color: #6b7280 !important; font-size: 10px !important; }
+    .leaflet-control-attribution a { color: #10b981 !important; }
+  </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<div id="navbar">
+  <div class="brand"><div class="dot"></div>SafePath</div>
+  <div id="tod-badge">
+    <span id="tod-icon">☀️</span>
+    <span id="tod-label">Day mode</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div id="content">
+
+  <!-- ── Sidebar ── -->
+  <div id="sidebar">
+
+    <!-- Search -->
+    <div class="panel-section">
+      <div class="section-label">Route</div>
+
+      <div class="input-group" id="orig-group">
+        <span class="input-icon">🔵</span>
+        <input class="addr-input" id="origin" placeholder="Starting point…" autocomplete="off"/>
+        <div class="suggest-drop" id="orig-drop"></div>
+      </div>
+
+      <div class="input-group" id="dest-group">
+        <span class="input-icon">📍</span>
+        <input class="addr-input" id="destination" placeholder="Destination…" autocomplete="off"/>
+        <div class="suggest-drop" id="dest-drop"></div>
+      </div>
+
+      <button id="find-btn" onclick="findRoute()">Find Routes</button>
+      <div id="spinner"><div class="spin"></div> Finding safest routes…</div>
+      <div id="error-msg"></div>
+    </div>
+
+    <!-- Layer controls -->
+    <div class="panel-section">
+      <div class="section-label">Map layers</div>
+      <label class="toggle-row">
+        <input type="checkbox" id="heatmap-toggle" checked onchange="toggleHeatmap()"/>
+        Crime hotspots
+      </label>
+    </div>
+
+    <!-- Route cards -->
+    <div class="panel-section" id="route-cards-section" style="display:none">
+      <div class="section-label">Routes</div>
+      <div id="route-cards"></div>
+    </div>
+
+    <!-- Directions -->
+    <div class="panel-section" id="directions-section" style="display:none">
+      <div class="dir-header" onclick="toggleSteps()">
+        <span>Step-by-step directions</span>
+        <span id="steps-chevron">▼</span>
+      </div>
+      <div id="steps-list" style="display:none"></div>
+    </div>
+
+  </div>
+
+  <!-- ── Map ── -->
+  <div id="map-container">
+    <div id="map"></div>
+  </div>
+
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const ROUTE_CFG = {
+  fastest:  { label: 'Fastest',  color: '#66FF00', weight: 5, dash: null,  icon: '⚡' },
+  safest:   { label: 'Safest',   color: '#0096FF', weight: 5, dash: null,  icon: '🛡️' },
+  balanced: { label: 'Balanced', color: '#FF0000', weight: 3, dash: '8,5', icon: '⚖️' },
+};
+
+const SD_CENTER = [32.7157, -117.1611];
+
+// ── Map init ───────────────────────────────────────────────────────────────
+const map = L.map('map', { center: SD_CENTER, zoom: 13, zoomControl: true });
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+  subdomains: 'abcd', maxZoom: 19,
+}).addTo(map);
+
+// ── State ──────────────────────────────────────────────────────────────────
+let routeLayers   = {};   // mode → L.polyline
+let markerLayers  = [];   // start/end markers
+let heatLayer     = null;
+let heatVisible   = true;
+let activeMode    = 'safest';
+let stepsOpen     = false;
+let lastData      = null;
+
+// ── Autocomplete ───────────────────────────────────────────────────────────
+let suggestTimers = {};
+
+function setupAutocomplete(inputId, dropId) {
+  const input = document.getElementById(inputId);
+  const drop  = document.getElementById(dropId);
+
+  input.addEventListener('input', () => {
+    clearTimeout(suggestTimers[inputId]);
+    const q = input.value.trim();
+    if (q.length < 2) { drop.classList.remove('open'); drop.innerHTML = ''; return; }
+    suggestTimers[inputId] = setTimeout(() => fetchSuggestions(q, input, drop), 220);
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(() => { drop.classList.remove('open'); }, 150);
+  });
+}
+
+async function fetchSuggestions(q, input, drop) {
+  try {
+    const res  = await fetch(`/suggest?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    if (!data.length) { drop.classList.remove('open'); return; }
+    drop.innerHTML = data.slice(0, 5).map(r => {
+      const parts = r.display_name.split(',');
+      const short = parts.slice(0, 2).map(s => s.trim()).join(', ');
+      return `<div class="suggest-item" data-full="${r.display_name.replace(/"/g,'&quot;')}">📍 ${short}</div>`;
+    }).join('');
+    drop.querySelectorAll('.suggest-item').forEach(el => {
+      el.addEventListener('mousedown', () => {
+        input.value = el.dataset.full;
+        drop.classList.remove('open');
+        drop.innerHTML = '';
+      });
+    });
+    drop.classList.add('open');
+  } catch (_) {}
+}
+
+setupAutocomplete('origin',      'orig-drop');
+setupAutocomplete('destination', 'dest-drop');
+
+// Press Enter to search
+document.getElementById('origin').addEventListener('keydown', e => { if (e.key === 'Enter') findRoute(); });
+document.getElementById('destination').addEventListener('keydown', e => { if (e.key === 'Enter') findRoute(); });
+
+// ── Core: find route ───────────────────────────────────────────────────────
+async function findRoute() {
+  const origin = document.getElementById('origin').value.trim();
+  const dest   = document.getElementById('destination').value.trim();
+  if (!origin || !dest) { showError('Enter both a starting point and a destination.'); return; }
+
+  showSpinner(true);
+  clearMap();
+  hideError();
+
+  try {
+    const res = await fetch('/route', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ origin, destination: dest }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) { showError(data.detail || 'Something went wrong.'); return; }
+
+    lastData = data;
+    drawRoutes(data);
+    drawHeatmap(data.crime_pts);
+    renderRouteCards(data);
+    renderDirections(data.routes[activeMode].steps);
+    setNightMode(data.is_night);
+
+  } catch (e) {
+    showError('Could not connect to SafePath server. Is it running?');
+  } finally {
+    showSpinner(false);
+  }
+}
+
+// ── Map drawing ────────────────────────────────────────────────────────────
+function drawRoutes(data) {
+  // Draw inactive routes first, active on top
+  const order = Object.keys(ROUTE_CFG).filter(m => m !== activeMode).concat([activeMode]);
+
+  order.forEach(mode => {
+    const cfg    = ROUTE_CFG[mode];
+    const coords = data.routes[mode].coords;
+    const isActive = mode === activeMode;
+
+    const poly = L.polyline(coords, {
+      color:     cfg.color,
+      weight:    cfg.weight,
+      opacity:   isActive ? 1.0 : 0.25,
+      dashArray: cfg.dash,
+    }).addTo(map);
+
+    poly.bindTooltip(
+      `${cfg.label}: ${data.routes[mode].distance_mi} mi · ${data.routes[mode].time_min} min`,
+      { sticky: true, className: 'sp-tooltip' }
+    );
+
+    routeLayers[mode] = poly;
+  });
+
+  // Start marker
+  const sm = L.circleMarker(data.origin_coords, {
+    radius: 9, fillColor: '#66FF00', color: '#111827',
+    weight: 2, opacity: 1, fillOpacity: 1,
+  }).addTo(map).bindPopup('Start');
+  markerLayers.push(sm);
+
+  // End marker
+  const em = L.circleMarker(data.destination_coords, {
+    radius: 9, fillColor: '#FF4444', color: '#111827',
+    weight: 2, opacity: 1, fillOpacity: 1,
+  }).addTo(map).bindPopup('Destination');
+  markerLayers.push(em);
+
+  // Fit all routes in view
+  const allCoords = Object.values(data.routes).flatMap(r => r.coords);
+  if (allCoords.length) map.fitBounds(allCoords, { padding: [50, 50] });
+}
+
+function drawHeatmap(pts) {
+  if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
+  if (!pts || !pts.length) return;
+  heatLayer = L.heatLayer(pts, { radius: 18, blur: 22, minOpacity: 0.2,
+    gradient: { 0: 'rgba(0,0,0,0)', 0.4: '#fca5a5', 0.7: '#ef4444', 1.0: '#991b1b' }
+  });
+  if (heatVisible) heatLayer.addTo(map);
+}
+
+function toggleHeatmap() {
+  heatVisible = document.getElementById('heatmap-toggle').checked;
+  if (!heatLayer) return;
+  if (heatVisible) heatLayer.addTo(map);
+  else map.removeLayer(heatLayer);
+}
+
+function selectRoute(mode) {
+  activeMode = mode;
+  // Update line opacity
+  Object.entries(routeLayers).forEach(([m, poly]) => {
+    poly.setStyle({ opacity: m === mode ? 1.0 : 0.25 });
+    if (m === mode) poly.bringToFront();
+  });
+  // Update card active state
+  document.querySelectorAll('.route-card').forEach(el => {
+    el.classList.toggle('active', el.dataset.mode === mode);
+  });
+  // Update directions
+  if (lastData) renderDirections(lastData.routes[mode].steps);
+}
+
+// ── Route cards ────────────────────────────────────────────────────────────
+function renderRouteCards(data) {
+  const container = document.getElementById('route-cards');
+  const section   = document.getElementById('route-cards-section');
+  container.innerHTML = '';
+
+  Object.entries(ROUTE_CFG).forEach(([mode, cfg]) => {
+    const route  = data.routes[mode];
+    const scores = route.edge_scores;
+    const avg    = scores.length
+      ? (scores.reduce((s, e) => s + e.safety_score, 0) / scores.length).toFixed(2)
+      : '—';
+
+    const card = document.createElement('div');
+    card.className   = `route-card${mode === activeMode ? ' active' : ''}`;
+    card.dataset.mode = mode;
+    card.style.setProperty('--rc', cfg.color);
+    card.onclick = () => selectRoute(mode);
+    card.innerHTML = `
+      <div class="rc-top">
+        <span class="rc-label">
+          <span class="rc-dot" style="background:${cfg.color}"></span>
+          ${cfg.icon} ${cfg.label}
+        </span>
+        <span class="rc-score">Score ${avg}</span>
+      </div>
+      <div class="rc-stats">
+        <span><span class="rc-val">${route.distance_mi} mi</span></span>
+        <span><span class="rc-val">${route.time_min} min</span> walk</span>
+      </div>`;
+    container.appendChild(card);
+  });
+
+  section.style.display = 'block';
+}
+
+// ── Directions ─────────────────────────────────────────────────────────────
+function renderDirections(steps) {
+  const section = document.getElementById('directions-section');
+  const list    = document.getElementById('steps-list');
+  if (!steps || !steps.length) { section.style.display = 'none'; return; }
+
+  list.innerHTML = steps.map((s, i) => {
+    const isDest = s.icon === '📍';
+    return `
+      <div class="dir-step">
+        <div class="dir-step-icon${isDest ? ' dest' : ''}">${s.icon}</div>
+        <div class="dir-step-body">
+          ${!isDest ? `<div style="font-size:10px;color:#6b7280;font-weight:600;margin-bottom:2px">Step ${i + 1}</div>` : ''}
+          <div class="dir-step-instr">${s.instruction}</div>
+          ${s.distance ? `<div class="dir-step-dist">${s.distance}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  section.style.display = 'block';
+}
+
+function toggleSteps() {
+  stepsOpen = !stepsOpen;
+  document.getElementById('steps-list').style.display    = stepsOpen ? 'block' : 'none';
+  document.getElementById('steps-chevron').textContent   = stepsOpen ? '▲' : '▼';
+}
+
+// ── Night mode ─────────────────────────────────────────────────────────────
+function setNightMode(isNight) {
+  document.getElementById('tod-icon').textContent  = isNight ? '🌙' : '☀️';
+  document.getElementById('tod-label').textContent = isNight ? 'Night mode — elevated crime weights' : 'Day mode';
+}
+
+// ── UI helpers ─────────────────────────────────────────────────────────────
+function showSpinner(on) {
+  document.getElementById('spinner').classList.toggle('show', on);
+  document.getElementById('find-btn').disabled = on;
+}
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideError() { document.getElementById('error-msg').classList.remove('show'); }
+
+function clearMap() {
+  Object.values(routeLayers).forEach(l => map.removeLayer(l));
+  routeLayers = {};
+  markerLayers.forEach(l => map.removeLayer(l));
+  markerLayers = [];
+  if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
+  document.getElementById('route-cards-section').style.display = 'none';
+  document.getElementById('directions-section').style.display  = 'none';
+  document.getElementById('steps-list').style.display = 'none';
+  stepsOpen = false;
+  document.getElementById('steps-chevron').textContent = '▼';
+  lastData = null;
+}
+</script>
+
+</body>
+</html>

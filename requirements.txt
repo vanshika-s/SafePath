@@ -1,26 +1,7 @@
-# Core data handling
-pandas          # tabular data loading, filtering, and transformation
-numpy           # numerical operations used throughout scoring and preprocessing
+# Streamlit frontend dependencies
+# For the FastAPI backend (deployed on Render), see requirements-backend.txt
 
-# Geospatial
-geopandas       # spatial DataFrames — reads .gpkg/.shp files, spatial joins, reprojection
-shapely         # geometry primitives (points, polygons, buffers) used by GeoPandas under the hood
-pyproj          # coordinate reference system transformations required by GeoPandas/Shapely
-fiona           # file I/O backend for GeoPandas (.shp, .gpkg read/write)
-osmnx           # downloads and models the OpenStreetMap walking network as a graph
-networkx        # graph data structure and pathfinding (Dijkstra/A*) used by OSMnx and the router
-astral          # compute precise sunrise/sunset times to determine day and night
-
-# Geocoding
-geopy           # Nominatim geocoder — converts street addresses to lat/lon coordinates
-
-# Web scraping (used by scripts/scrape_ucsd_police_logs.py)
-requests        # HTTP client for the UCSD police log scraper
-beautifulsoup4  # HTML parser for the UCSD police log table
-
-# Visualization (notebooks)
-matplotlib      # base plotting library used in exploratory notebooks
-seaborn         # statistical visualizations built on top of matplotlib
-
-# App
-streamlit       # web UI framework for the SafePath frontend
+streamlit>=1.33.0
+streamlit-folium>=0.20.0
+folium>=0.16.0
+requests>=2.31.0
