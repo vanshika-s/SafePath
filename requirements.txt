@@ -11,5 +11,4 @@ scipy
 suntime
 python-dateutil
 geopy
-gdown
 networkx

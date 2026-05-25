@@ -157,10 +157,15 @@ ROUTE_CFG = {
 }
 
 # ── Session defaults ───────────────────────────────────────────────────────────
-if "active_mode"  not in st.session_state: st.session_state.active_mode  = "safest"
-if "result"       not in st.session_state: st.session_state.result       = None
-if "error"        not in st.session_state: st.session_state.error        = None
-if "show_heatmap" not in st.session_state: st.session_state.show_heatmap = True
+if "active_mode"      not in st.session_state: st.session_state.active_mode      = "safest"
+if "result"           not in st.session_state: st.session_state.result           = None
+if "error"            not in st.session_state: st.session_state.error            = None
+if "night_alerted"    not in st.session_state: st.session_state.night_alerted    = False
+
+# ── Night alert (once per session) ────────────────────────────────────────────
+if is_night_now() and not st.session_state.night_alerted:
+    st.toast("🌙 It's nighttime — we're routing you along the safest streets. Stay safe!", icon="🛡️")
+    st.session_state.night_alerted = True
 
 
 def _step_html(i: int, step: dict) -> str:
@@ -258,17 +263,20 @@ with st.sidebar:
                 st.session_state.active_mode = mode
                 st.rerun()
 
-        # ── Directions ────────────────────────────────────────────────────────
-        active_cfg = ROUTE_CFG[st.session_state.active_mode]
-        st.markdown(
-            f'<div class="sl">Directions — {active_cfg["icon"]} {active_cfg["label"]}</div>',
-            unsafe_allow_html=True,
-        )
 
-        steps = result["routes"][st.session_state.active_mode].get("steps", [])
-        html  = "".join(_step_html(i, s) for i, s in enumerate(steps))
-        st.markdown(f"<div>{html}</div>", unsafe_allow_html=True)
 
+# ── Hero text ─────────────────────────────────────────────────────────────────
+st.markdown(
+    '<div style="padding: 28px 0 8px 0;">'
+    '<div style="font-size:28px;font-weight:700;color:#111827;letter-spacing:-0.5px;">'
+    "Let's find a safer route in San Diego."
+    '</div>'
+    '<div style="font-size:14px;color:#6b7280;margin-top:6px;">'
+    'We score every street by crime, infrastructure (roads &amp; lighting), and walkability — then pick the route that keeps you safe.'
+    '</div>'
+    '</div>',
+    unsafe_allow_html=True,
+)
 
 # ── Main area — tabs ───────────────────────────────────────────────────────────
 tab_map, tab_compare = st.tabs(["🗺️ Map", "📊 Compare Routes"])
@@ -352,13 +360,34 @@ with tab_map:
                 padding_bottom_right=[50, 50],
             )
 
-    st_folium(
-        m,
-        use_container_width=True,
-        height=700,
-        returned_objects=[],
-        key=f"map_{active_mode}_{st.session_state.get('show_heatmap', True)}",
-    )
+    map_col, dir_col = st.columns([3, 1])
+
+    with map_col:
+        st_folium(
+            m,
+            use_container_width=True,
+            height=700,
+            returned_objects=[],
+            key=f"map_{active_mode}_{st.session_state.get('show_heatmap', True)}",
+        )
+
+    with dir_col:
+        if result:
+            active_cfg = ROUTE_CFG[st.session_state.active_mode]
+            st.markdown(
+                f'<div class="sl">Directions — {active_cfg["icon"]} {active_cfg["label"]}</div>',
+                unsafe_allow_html=True,
+            )
+            steps = result["routes"][st.session_state.active_mode].get("steps", [])
+            html  = "".join(_step_html(i, s) for i, s in enumerate(steps))
+            st.markdown(f'<div style="max-height:680px;overflow-y:auto;">{html}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(
+                '<div style="padding-top:40px;text-align:center;color:#9ca3af;font-size:13px;">'
+                '🗺️<br><br>Directions will appear here after you search a route.'
+                '</div>',
+                unsafe_allow_html=True,
+            )
 
 
 # ── Tab 2: Compare Routes ──────────────────────────────────────────────────────
@@ -424,7 +453,7 @@ with tab_compare:
                 "Distance":       f"{r['distance_mi']} mi",
                 "Walk time":      f"{r['time_min']} min",
                 "Safety score":   f"{avg:.2f}",
-                "Infrastructure": f"{avg_infra:.2f}",
+                "Infrastructure (roads & lighting)": f"{avg_infra:.2f}",
                 "Walk score":     f"{avg_walk:.2f}",
             })
 

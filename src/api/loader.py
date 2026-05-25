@@ -1,5 +1,6 @@
 import os
 import zipfile
+import requests
 import geopandas as gpd
 
 _FAST_GRAPH_DIR = "data/processed/fast_graph"
@@ -7,36 +8,36 @@ _MARKER         = f"{_FAST_GRAPH_DIR}/node_ids.npy"
 _ZIP_PATH       = "data/processed/fast_graph.zip"
 _CRIME_PATH     = "data/processed/crime_final_gdf.gpkg"
 
-_GDRIVE_FAST_GRAPH_ID = "1LTBFmsWq0YpY8GGColvX3lLxhUhumLyH"
-_GDRIVE_CRIME_ID      = "1xD35hpR1NM5Sry_7Mxr0-gJRN-BllVEr"
+_GCS_BASE       = "https://storage.googleapis.com/safepath-sd-data"
+_GCS_GRAPH_URL  = f"{_GCS_BASE}/fast_graph.zip"
+_GCS_CRIME_URL  = f"{_GCS_BASE}/crime_final_gdf.gpkg"
 
 _graph = None
 _crime = None
 
 
-def _gdrive_download(file_id: str, output: str) -> None:
-    try:
-        import gdown
-    except ImportError:
-        raise ImportError("gdown is required. Run: pip install gdown")
+def _gcs_download(url: str, output: str) -> None:
     os.makedirs(os.path.dirname(output), exist_ok=True)
-    url = f"https://drive.google.com/uc?id={file_id}&confirm=t"
-    gdown.download(url, output=output, quiet=False)
+    print(f"Downloading {url} ...")
+    with requests.get(url, stream=True, timeout=120) as r:
+        r.raise_for_status()
+        with open(output, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8 * 1024 * 1024):
+                f.write(chunk)
+    print(f"Saved to {output}")
 
 
 def download_data() -> None:
     if not os.path.exists(_MARKER):
         if not os.path.exists(_ZIP_PATH):
-            print("Downloading fast_graph.zip from Google Drive...")
-            _gdrive_download(_GDRIVE_FAST_GRAPH_ID, _ZIP_PATH)
+            _gcs_download(_GCS_GRAPH_URL, _ZIP_PATH)
         print("Extracting fast_graph.zip...")
         with zipfile.ZipFile(_ZIP_PATH, "r") as z:
             z.extractall(_FAST_GRAPH_DIR)
         print("Fast graph ready.")
 
     if not os.path.exists(_CRIME_PATH):
-        print("Downloading crime_final_gdf.gpkg from Google Drive...")
-        _gdrive_download(_GDRIVE_CRIME_ID, _CRIME_PATH)
+        _gcs_download(_GCS_CRIME_URL, _CRIME_PATH)
         print("Crime data ready.")
 
 
