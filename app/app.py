@@ -160,12 +160,7 @@ ROUTE_CFG = {
 if "active_mode"      not in st.session_state: st.session_state.active_mode      = "safest"
 if "result"           not in st.session_state: st.session_state.result           = None
 if "error"            not in st.session_state: st.session_state.error            = None
-if "night_alerted"    not in st.session_state: st.session_state.night_alerted    = False
-
-# ── Night alert (once per session) ────────────────────────────────────────────
-if is_night_now() and not st.session_state.night_alerted:
-    st.toast("🌙 It's nighttime — we're routing you along the safest streets. Stay safe!", icon="🛡️")
-    st.session_state.night_alerted = True
+if "night_dismissed"  not in st.session_state: st.session_state.night_dismissed  = False
 
 
 def _step_html(i: int, step: dict) -> str:
@@ -264,6 +259,18 @@ with st.sidebar:
                 st.rerun()
 
 
+
+# ── Night banner ──────────────────────────────────────────────────────────────
+if is_night_now() and not st.session_state.night_dismissed:
+    msg_col, btn_col = st.columns([11, 1])
+    with msg_col:
+        st.warning("🌙 **It's nighttime** — we're prioritizing your safety. The **Safest** route is strongly recommended. Stay safe out there! 🛡️")
+    with btn_col:
+        st.markdown("<div style='padding-top:8px'>", unsafe_allow_html=True)
+        if st.button("✕", key="dismiss_night"):
+            st.session_state.night_dismissed = True
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # ── Hero text ─────────────────────────────────────────────────────────────────
 st.markdown(
