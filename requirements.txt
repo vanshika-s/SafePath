@@ -8,7 +8,7 @@ geopandas
 osmnx
 numpy
 scipy
-suntime
+astral
 python-dateutil
 geopy
 networkx

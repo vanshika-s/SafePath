@@ -6,12 +6,14 @@ from html import escape
 import requests as _requests
 import streamlit as st
 import folium
+from collections import defaultdict
 from folium.plugins import HeatMap
 from streamlit_folium import st_folium
 from streamlit_searchbox import st_searchbox
 
 from datetime import datetime
-from suntime import Sun
+from astral import LocationInfo
+from astral.sun import sun as _astral_sun
 from dateutil import tz
 
 from src.api import loader, pipeline
@@ -201,14 +203,13 @@ with st.sidebar:
     )
 
     # Time / day-night card
-    _sun       = Sun(32.8801, -117.234)
     _local_tz  = tz.tzlocal()
     _now       = datetime.now(_local_tz)
-    _sunrise   = _sun.get_sunrise_time(_now, _local_tz)
-    _sunset    = _sun.get_sunset_time(_now, _local_tz)
+    _loc       = LocationInfo(latitude=32.8801, longitude=-117.234)
+    _s         = _astral_sun(_loc.observer, date=_now, tzinfo=_local_tz)
     _time_str  = _now.strftime("%-I:%M %p")
-    _dawn_str  = _sunrise.strftime("%-I:%M %p")
-    _dusk_str  = _sunset.strftime("%-I:%M %p")
+    _dawn_str  = _s["dawn"].strftime("%-I:%M %p")
+    _dusk_str  = _s["dusk"].strftime("%-I:%M %p")
     _tod_label = "After dark" if tod else "Daytime"
     _card_cls  = "time-card-night" if tod else "time-card-day"
     _main_cls  = "time-main-night" if tod else "time-main-day"
@@ -340,13 +341,59 @@ with tab_map:
 
     if result:
         if st.session_state.get("show_heatmap", True):
-            heat_pts = [[la, lo] for la, lo in result["crime_pts"]]
+            # Collect all route coords to build a bounding box
+            _all_lats = [c[0] for mode in ROUTE_CFG for c in result["routes"][mode]["coords"]]
+            _all_lngs = [c[1] for mode in ROUTE_CFG for c in result["routes"][mode]["coords"]]
+            _buf = 0.01  # ~1 km padding
+            _lat_min, _lat_max = min(_all_lats) - _buf, max(_all_lats) + _buf
+            _lng_min, _lng_max = min(_all_lngs) - _buf, max(_all_lngs) + _buf
+            heat_pts = [
+                [la, lo] for la, lo in result["crime_pts"]
+                if _lat_min <= la <= _lat_max and _lng_min <= lo <= _lng_max
+            ]
             if heat_pts:
-                HeatMap(
-                    heat_pts,
-                    radius=18, blur=22, min_opacity=0.2,
-                    gradient={"0": "rgba(0,0,0,0)", "0.4": "#fca5a5", "0.7": "#ef4444", "1.0": "#991b1b"},
-                ).add_to(m)
+                import numpy as np
+
+                # ~100m grid — only keep points in cells with 5+ incidents
+                _cell_lat, _cell_lng = 0.0009, 0.001
+                _counts = defaultdict(int)
+                for la, lo in heat_pts:
+                    _counts[(int(la / _cell_lat), int(lo / _cell_lng))] += 1
+                _keep   = {c for c, n in _counts.items() if n >= 10}
+                _pts    = [[la, lo] for la, lo in heat_pts
+                           if (int(la / _cell_lat), int(lo / _cell_lng)) in _keep]
+
+                if _pts:
+                    # Percentile-based gradient: scale max intensity to p95 so
+                    # a handful of extreme cells don't wash out the rest
+                    _vals  = np.array([_counts[c] for c in _keep], dtype=float)
+                    _p95   = float(np.percentile(_vals, 95))
+                    HeatMap(
+                        _pts,
+                        radius=18, blur=22, min_opacity=0.25,
+                        max_val=_p95,
+                        gradient={
+                            "0.0": "rgba(252,165,165,0)",
+                            "0.4": "#fca5a5",
+                            "0.65": "#ef4444",
+                            "0.85": "#dc2626",
+                            "1.0":  "#991b1b",
+                        },
+                    ).add_to(m)
+                    folium.Element(
+                        '<div style="position:fixed;bottom:24px;right:10px;z-index:1000;'
+                        'background:white;padding:8px 12px;border-radius:8px;'
+                        'border:1px solid #d1d5db;font-size:11px;font-family:sans-serif;'
+                        'box-shadow:0 1px 4px rgba(0,0,0,0.1);">'
+                        '<div style="font-weight:600;color:#374151;margin-bottom:5px;">Crime hotspots</div>'
+                        '<div style="display:flex;align-items:center;gap:7px;">'
+                        '<span style="display:inline-block;width:60px;height:8px;border-radius:4px;'
+                        'background:linear-gradient(to right,#fca5a5,#ef4444,#991b1b);"></span>'
+                        '<span style="color:#6b7280;">Low &rarr; High</span>'
+                        '</div>'
+                        '<div style="color:#9ca3af;font-size:10px;margin-top:4px;">Min 10 incidents · scaled to local area</div>'
+                        '</div>'
+                    ).add_to(m.get_root().html)
 
         all_coords = []
 
@@ -389,8 +436,10 @@ with tab_map:
         ).add_to(m)
 
         if all_coords:
+            lats = [c[0] for c in all_coords]
+            lngs = [c[1] for c in all_coords]
             m.fit_bounds(
-                all_coords,
+                [[min(lats), min(lngs)], [max(lats), max(lngs)]],
                 padding_top_left=[50, 50],
                 padding_bottom_right=[50, 50],
             )
