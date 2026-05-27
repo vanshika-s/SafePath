@@ -1,14 +1,12 @@
 """
 Fast numpy/scipy graph representation for SafePath routing.
 
-Replaces the NetworkX/pickle graph storage with numpy .npy arrays and
-scipy sparse matrices. Loading drops from ~3-5 s (Python dict pickle)
-to ~300-500 ms (raw C-array deserialisation + sparse-matrix rebuild).
+Only contains code used at runtime by the app. Build-time logic
+(from_nx, save, _name) lives in notebooks/safety-score-edge.ipynb.
 """
 
 import math
 import heapq
-import os
 import pickle
 
 import numpy as np
@@ -16,7 +14,6 @@ from scipy.sparse import csr_matrix
 from scipy.spatial import KDTree
 
 
-# All 6 (length_type, is_night) combinations we pre-compute.
 _COMBOS = [
     ("short",  False), ("short",  True),
     ("medium", False), ("medium", True),
@@ -26,117 +23,6 @@ _COMBOS = [
 
 class RouteGraph:
     """Lightweight graph built from numpy arrays — no NetworkX at runtime."""
-
-    # ── Construction from NetworkX ─────────────────────────────────────────────
-
-    @classmethod
-    def from_nx(cls, G_nx) -> "RouteGraph":
-        """Convert an OSMnx MultiDiGraph to RouteGraph (one-time, slow path)."""
-        rg = cls.__new__(cls)
-
-        # ── Nodes ──────────────────────────────────────────────────────────────
-        node_list   = list(G_nx.nodes())
-        N           = len(node_list)
-        # Sorted for fast binary-search lookup (OSMnx ID → array index)
-        sort_order  = np.argsort(node_list)
-        rg.node_ids     = np.array(node_list, dtype=np.int64)
-        rg.node_lats    = np.array([G_nx.nodes[n]["y"] for n in node_list], dtype=np.float64)
-        rg.node_lngs    = np.array([G_nx.nodes[n]["x"] for n in node_list], dtype=np.float64)
-        rg._sorted_ids  = rg.node_ids[sort_order]
-        rg._sort_order  = sort_order.astype(np.int32)
-
-        # ── Edges ──────────────────────────────────────────────────────────────
-        raw = []
-        id2i = {nid: i for i, nid in enumerate(node_list)}  # temp build dict
-        for u, v, data in G_nx.edges(data=True):
-            raw.append((
-                id2i[u], id2i[v],
-                float(data.get("length",               0)),
-                float(data.get("grade",                0)),
-                _name(data),
-                float(data.get("walk_score",           0.5)),
-                float(data.get("infrastructure_score", 0.5)),
-                float(data.get("crime_score_short_day",    0.5)),
-                float(data.get("crime_score_short_night",  0.5)),
-                float(data.get("crime_score_medium_day",   0.5)),
-                float(data.get("crime_score_medium_night", 0.5)),
-                float(data.get("crime_score_long_day",     0.5)),
-                float(data.get("crime_score_long_night",   0.5)),
-            ))
-
-        rg.edge_from   = np.array([e[0]  for e in raw], dtype=np.int32)
-        rg.edge_to     = np.array([e[1]  for e in raw], dtype=np.int32)
-        rg.edge_length = np.array([e[2]  for e in raw], dtype=np.float32)
-        rg.edge_grade  = np.array([e[3]  for e in raw], dtype=np.float32)
-        rg.edge_names  = [e[4]            for e in raw]
-        rg.edge_walk   = np.array([e[5]  for e in raw], dtype=np.float32)
-        rg.edge_infra  = np.array([e[6]  for e in raw], dtype=np.float32)
-
-        crimes = {
-            ("short",  False): np.array([e[7]  for e in raw], dtype=np.float32),
-            ("short",  True):  np.array([e[8]  for e in raw], dtype=np.float32),
-            ("medium", False): np.array([e[9]  for e in raw], dtype=np.float32),
-            ("medium", True):  np.array([e[10] for e in raw], dtype=np.float32),
-            ("long",   False): np.array([e[11] for e in raw], dtype=np.float32),
-            ("long",   True):  np.array([e[12] for e in raw], dtype=np.float32),
-        }
-
-        # Sorted edge lookup arrays (replaces a large Python dict)
-        lex = np.lexsort((rg.edge_to, rg.edge_from))
-        rg._esort_from  = rg.edge_from[lex]
-        rg._esort_to    = rg.edge_to[lex]
-        rg._esort_eidx  = lex.astype(np.int32)  # original edge index at sorted position
-
-        # ── Pre-compute scores / costs ─────────────────────────────────────────
-        rg._scores = {}
-        rg._safe_costs     = {}
-        rg._balanced_costs = {}
-        for (lt, night) in _COMBOS:
-            W_C, W_W, W_S = (0.45, 0.25, 0.30) if night else (0.50, 0.25, 0.25)
-            sc = W_C * crimes[(lt, night)] + W_W * rg.edge_walk + W_S * rg.edge_infra
-            rg._scores[(lt, night)]         = sc.astype(np.float32)
-            rg._safe_costs[(lt, night)]     = (rg.edge_length * (1 + 4 * (1 - sc))).astype(np.float32)
-            rg._balanced_costs[(lt, night)] = (rg.edge_length * (1 + 2 * (1 - sc))).astype(np.float32)
-
-        rg._N = N
-        rg._build_runtime(N)
-        return rg
-
-    # ── Serialisation ──────────────────────────────────────────────────────────
-
-    def save(self, directory: str) -> None:
-        os.makedirs(directory, exist_ok=True)
-
-        # Nodes
-        np.save(f"{directory}/node_ids.npy",   self.node_ids)
-        np.save(f"{directory}/node_lats.npy",  self.node_lats)
-        np.save(f"{directory}/node_lngs.npy",  self.node_lngs)
-        np.save(f"{directory}/sorted_ids.npy", self._sorted_ids)
-        np.save(f"{directory}/sort_order.npy", self._sort_order)
-
-        # Edges (numerical)
-        np.save(f"{directory}/edge_from.npy",   self.edge_from)
-        np.save(f"{directory}/edge_to.npy",     self.edge_to)
-        np.save(f"{directory}/edge_length.npy", self.edge_length)
-        np.save(f"{directory}/edge_grade.npy",  self.edge_grade)
-        np.save(f"{directory}/edge_walk.npy",   self.edge_walk)
-        np.save(f"{directory}/edge_infra.npy",  self.edge_infra)
-
-        # Edge lookup (sorted arrays — no large Python dict)
-        np.save(f"{directory}/esort_from.npy",  self._esort_from)
-        np.save(f"{directory}/esort_to.npy",    self._esort_to)
-        np.save(f"{directory}/esort_eidx.npy",  self._esort_eidx)
-
-        # Edge names (strings — must pickle, but small relative to the graph)
-        with open(f"{directory}/edge_names.pkl", "wb") as f:
-            pickle.dump(self.edge_names, f, protocol=pickle.HIGHEST_PROTOCOL)
-
-        # Pre-computed score / cost arrays
-        for (lt, night) in _COMBOS:
-            tod = "night" if night else "day"
-            np.save(f"{directory}/score_{lt}_{tod}.npy",   self._scores[(lt, night)])
-            np.save(f"{directory}/safecost_{lt}_{tod}.npy",self._safe_costs[(lt, night)])
-            np.save(f"{directory}/balcost_{lt}_{tod}.npy", self._balanced_costs[(lt, night)])
 
     @classmethod
     def load(cls, directory: str) -> "RouteGraph":
@@ -354,8 +240,3 @@ def _dijkstra(csr: csr_matrix, orig: int, dest: int) -> list[int]:
     return path[::-1]
 
 
-def _name(data: dict) -> str:
-    n = data.get("name")
-    if isinstance(n, list):
-        n = n[0] if n else None
-    return n or "Unnamed Road"

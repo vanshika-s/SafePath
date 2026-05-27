@@ -10,6 +10,10 @@ from folium.plugins import HeatMap
 from streamlit_folium import st_folium
 from streamlit_searchbox import st_searchbox
 
+from datetime import datetime
+from suntime import Sun
+from dateutil import tz
+
 from src.api import loader, pipeline
 from src.api.day_night import is_night_now
 
@@ -95,10 +99,16 @@ st.markdown("""
 }
 
 /* Brand */
-.brand      { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-.brand-dot  { width: 10px; height: 10px; border-radius: 50%; background: #10b981; flex-shrink: 0; }
+.brand      { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.brand-dot  { width: 10px; height: 10px; border-radius: 50%; background: #2d7a5f; flex-shrink: 0; }
 .brand-name { font-size: 17px; font-weight: 700; color: #111827; }
-.tod        { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+
+/* Time card */
+.time-card-day   { background:#e4edf5; border:1px solid #cdd8e3; border-radius:10px; padding:10px 12px; margin-bottom:12px; }
+.time-card-night { background:#dce3f0; border:1px solid #aebdd4; border-radius:10px; padding:10px 12px; margin-bottom:12px; }
+.time-main-day   { font-size:13px; font-weight:700; color:#1b3a4b; }
+.time-main-night { font-size:13px; font-weight:700; color:#2a5070; }
+.time-sub        { font-size:11px; color:#5a7899; margin-top:2px; }
 
 /* Compare cards */
 .cmp-card {
@@ -181,20 +191,38 @@ def _step_html(i: int, step: dict) -> str:
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
-    tod      = is_night_now()
-    tod_icon = "🌙" if tod else "☀️"
-    tod_text = "Night mode — elevated crime weights" if tod else "Day mode"
+    tod = is_night_now()
 
+    # Brand
     st.markdown(
-        f'<div class="brand"><div class="brand-dot"></div>'
-        f'<span class="brand-name">SafePath</span></div>'
-        f'<div class="tod">{tod_icon} {tod_text}</div>'
-        f'<div class="sl">Route</div>',
+        '<div class="brand"><div class="brand-dot"></div>'
+        '<span class="brand-name">SafePath</span></div>',
         unsafe_allow_html=True,
     )
 
-    origin      = st_searchbox(suggest_address, placeholder="Starting point…",  key="orig_box", label="From")
-    destination = st_searchbox(suggest_address, placeholder="Destination…",      key="dest_box", label="To")
+    # Time / day-night card
+    _sun       = Sun(32.8801, -117.234)
+    _local_tz  = tz.tzlocal()
+    _now       = datetime.now(_local_tz)
+    _sunrise   = _sun.get_sunrise_time(_now, _local_tz)
+    _sunset    = _sun.get_sunset_time(_now, _local_tz)
+    _time_str  = _now.strftime("%-I:%M %p")
+    _dawn_str  = _sunrise.strftime("%-I:%M %p")
+    _dusk_str  = _sunset.strftime("%-I:%M %p")
+    _tod_label = "After dark" if tod else "Daytime"
+    _card_cls  = "time-card-night" if tod else "time-card-day"
+    _main_cls  = "time-main-night" if tod else "time-main-day"
+
+    st.markdown(
+        f'<div class="{_card_cls}">'
+        f'<div class="{_main_cls}">{_time_str} · {_tod_label}</div>'
+        f'<div class="time-sub">Dawn {_dawn_str} &nbsp;·&nbsp; Dusk {_dusk_str}</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    origin      = st_searchbox(suggest_address, placeholder="Starting point…", key="orig_box", label="From")
+    destination = st_searchbox(suggest_address, placeholder="Destination…",   key="dest_box", label="To")
     find_btn    = st.button("Find Routes", type="primary", use_container_width=True)
 
     st.markdown('<div class="sl">Map layers</div>', unsafe_allow_html=True)
