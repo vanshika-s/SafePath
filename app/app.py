@@ -43,74 +43,75 @@ st.markdown("""
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     color: #111827;
 }
 .rc-dot {
-    width: 11px;
-    height: 11px;
+    width: 13px;
+    height: 13px;
     border-radius: 50%;
     display: inline-block;
     flex-shrink: 0;
 }
 .rc-score {
-    font-size: 11px;
+    font-size: 13px;
     background: #e5e7eb;
-    padding: 2px 8px;
+    padding: 3px 9px;
     border-radius: 8px;
-    color: #4b5563;
+    color: #111827;
+    font-weight: 600;
 }
-.rc-stats { font-size: 12px; color: #6b7280; }
-.rc-val   { color: #111827; font-weight: 500; }
+.rc-stats { font-size: 14px; color: #111827; }
+.rc-val   { color: #111827; font-weight: 600; }
 
 /* Directions */
 .dir-step {
     display: flex;
     gap: 12px;
     align-items: flex-start;
-    padding: 8px 0;
-    border-bottom: 1px solid #e5e7eb;
+    padding: 10px 0;
+    border-bottom: 1px solid #d1d5db;
 }
 .dir-step:last-child { border-bottom: none; }
 .dir-icon {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     background: #e5e7eb;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 15px;
     flex-shrink: 0;
 }
 .dir-icon.dest { background: #fee2e2; border: 1px solid #ef4444; }
 .dir-body  { flex: 1; min-width: 0; }
-.dir-num   { font-size: 10px; color: #9ca3af; font-weight: 600; margin-bottom: 2px; }
-.dir-instr { font-size: 12px; color: #111827; line-height: 1.4; font-weight: 500; }
-.dir-dist  { font-size: 11px; color: #6b7280; margin-top: 2px; }
+.dir-num   { font-size: 12px; color: #374151; font-weight: 700; margin-bottom: 2px; }
+.dir-instr { font-size: 15px; color: #111827; line-height: 1.5; font-weight: 600; }
+.dir-dist  { font-size: 13px; color: #374151; margin-top: 3px; font-weight: 500; }
 
 /* Section labels */
 .sl {
-    font-size: 10px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     letter-spacing: .08em;
     text-transform: uppercase;
-    color: #9ca3af;
-    margin: 12px 0 8px 0;
+    color: #374151;
+    margin: 14px 0 8px 0;
 }
 
 /* Brand */
 .brand      { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.brand-dot  { width: 10px; height: 10px; border-radius: 50%; background: #2d7a5f; flex-shrink: 0; }
-.brand-name { font-size: 17px; font-weight: 700; color: #111827; }
+.brand-dot  { width: 12px; height: 12px; border-radius: 50%; background: #2d7a5f; flex-shrink: 0; }
+.brand-name { font-size: 22px; font-weight: 800; color: #111827; }
 
 /* Time card */
 .time-card-day   { background:#e4edf5; border:1px solid #cdd8e3; border-radius:10px; padding:10px 12px; margin-bottom:12px; }
 .time-card-night { background:#dce3f0; border:1px solid #aebdd4; border-radius:10px; padding:10px 12px; margin-bottom:12px; }
-.time-main-day   { font-size:13px; font-weight:700; color:#1b3a4b; }
-.time-main-night { font-size:13px; font-weight:700; color:#2a5070; }
-.time-sub        { font-size:11px; color:#5a7899; margin-top:2px; }
+.time-main-day   { font-size:15px; font-weight:700; color:#111827; }
+.time-main-night { font-size:15px; font-weight:700; color:#111827; }
+.time-sub        { font-size:13px; color:#1f2937; margin-top:3px; font-weight:500; }
 
 /* Compare cards */
 .cmp-card {
@@ -120,10 +121,10 @@ st.markdown("""
     text-align: center;
     height: 100%;
 }
-.cmp-stat-label { color: #6b7280; font-size: 11px; margin-bottom: 2px; }
-.cmp-stat-val   { color: #111827; font-size: 22px; font-weight: 600; margin-bottom: 14px; }
-.cmp-score-val  { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
-.cmp-title      { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 18px; }
+.cmp-stat-label { color: #111827; font-size: 13px; margin-bottom: 2px; font-weight: 600; }
+.cmp-stat-val   { color: #111827; font-size: 24px; font-weight: 700; margin-bottom: 14px; }
+.cmp-score-val  { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.cmp-title      { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 18px; }
 
 [data-testid="stSidebar"] > div:first-child { padding-top: 1.2rem; }
 </style>
@@ -195,14 +196,7 @@ def _step_html(i: int, step: dict) -> str:
 with st.sidebar:
     tod = is_night_now()
 
-    # Brand
-    st.markdown(
-        '<div class="brand"><div class="brand-dot"></div>'
-        '<span class="brand-name">SafePath</span></div>',
-        unsafe_allow_html=True,
-    )
-
-    # Time / day-night card
+    # Time / day-night card (shown first)
     _local_tz  = tz.tzlocal()
     _now       = datetime.now(_local_tz)
     _loc       = LocationInfo(latitude=32.8801, longitude=-117.234)
@@ -289,7 +283,7 @@ with st.sidebar:
 
 
 
-# ── Night banner ──────────────────────────────────────────────────────────────
+# ── Hero text (night banner above SafePath) ───────────────────────────────────
 if is_night_now() and not st.session_state.night_dismissed:
     msg_col, btn_col = st.columns([11, 1])
     with msg_col:
@@ -300,14 +294,16 @@ if is_night_now() and not st.session_state.night_dismissed:
             st.session_state.night_dismissed = True
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
-
-# ── Hero text ─────────────────────────────────────────────────────────────────
 st.markdown(
     '<div style="padding: 28px 0 8px 0;">'
-    '<div style="font-size:28px;font-weight:700;color:#111827;letter-spacing:-0.5px;">'
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
+    '<div style="width:14px;height:14px;border-radius:50%;background:#2d7a5f;flex-shrink:0;"></div>'
+    '<span style="font-size:48px;font-weight:900;color:#111827;letter-spacing:-1px;">SafePath</span>'
+    '</div>'
+    '<div style="font-size:28px;font-weight:700;color:#111827;letter-spacing:-0.5px;margin-bottom:8px;">'
     "Let's find a safer route in San Diego."
     '</div>'
-    '<div style="font-size:14px;color:#6b7280;margin-top:6px;">'
+    '<div style="font-size:17px;color:#111827;margin-top:8px;font-weight:500;">'
     'We score every street by crime, infrastructure (roads &amp; lighting), and walkability — then pick the route that keeps you safe.'
     '</div>'
     '</div>',
@@ -464,10 +460,10 @@ with tab_map:
             )
             steps = result["routes"][st.session_state.active_mode].get("steps", [])
             html  = "".join(_step_html(i, s) for i, s in enumerate(steps))
-            st.markdown(f'<div style="max-height:680px;overflow-y:auto;">{html}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="max-height:680px;overflow-y:auto;padding-right:4px;">{html}</div>', unsafe_allow_html=True)
         else:
             st.markdown(
-                '<div style="padding-top:40px;text-align:center;color:#9ca3af;font-size:13px;">'
+                '<div style="padding-top:40px;text-align:center;color:#374151;font-size:15px;font-weight:500;">'
                 '🗺️<br><br>Directions will appear here after you search a route.'
                 '</div>',
                 unsafe_allow_html=True,
@@ -480,17 +476,17 @@ with tab_compare:
 
     if not result:
         st.markdown(
-            '<div style="text-align:center;padding:60px 20px;color:#6b7280;">'
+            '<div style="text-align:center;padding:60px 20px;color:#374151;">'
             '<div style="font-size:48px;margin-bottom:16px">🗺️</div>'
-            '<div style="font-size:16px;font-weight:600;color:#374151;margin-bottom:8px">No routes yet</div>'
-            '<div style="font-size:13px">Search for an origin and destination to compare routes.</div>'
+            '<div style="font-size:18px;font-weight:700;color:#111827;margin-bottom:8px">No routes yet</div>'
+            '<div style="font-size:15px;font-weight:500;color:#374151">Search for an origin and destination to compare routes.</div>'
             '</div>',
             unsafe_allow_html=True,
         )
     else:
         st.markdown(
-            '<div style="font-size:11px;font-weight:600;letter-spacing:.08em;'
-            'text-transform:uppercase;color:#9ca3af;margin-bottom:16px">'
+            '<div style="font-size:14px;font-weight:700;letter-spacing:.08em;'
+            'text-transform:uppercase;color:#111827;margin-bottom:16px">'
             'All Routes — Side by Side</div>',
             unsafe_allow_html=True,
         )
@@ -518,8 +514,8 @@ with tab_compare:
 
         st.markdown("<div style='margin-top:28px'></div>", unsafe_allow_html=True)
         st.markdown(
-            '<div style="font-size:11px;font-weight:600;letter-spacing:.08em;'
-            'text-transform:uppercase;color:#9ca3af;margin-bottom:12px">'
+            '<div style="font-size:14px;font-weight:700;letter-spacing:.08em;'
+            'text-transform:uppercase;color:#111827;margin-bottom:12px">'
             'Detailed Breakdown</div>',
             unsafe_allow_html=True,
         )
