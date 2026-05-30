@@ -532,14 +532,18 @@ with tab_compare:
             avg       = sum(e["safety_score"]   for e in scores) / len(scores) if scores else 0
             avg_infra = sum(e["infrastructure"] for e in scores) / len(scores) if scores else 0
             avg_walk  = sum(e["walk_score"]     for e in scores) / len(scores) if scores else 0
-            rows.append({
+            avg_crime = sum(e["crime_score"]    for e in scores) / len(scores) if scores and "crime_score" in scores[0] else None
+            row = {
                 "Route":          f"{cfg['icon']} {cfg['label']}",
                 "Distance":       f"{r['distance_mi']} mi",
                 "Walk time":      f"{r['time_min']} min",
                 "Safety score":   f"{avg:.2f}",
                 "Infrastructure (roads & lighting)": f"{avg_infra:.2f}",
                 "Walk score":     f"{avg_walk:.2f}",
-            })
+            }
+            if avg_crime is not None:
+                row["Crime safety score"] = f"{avg_crime:.2f}"
+            rows.append(row)
 
         df = pd.DataFrame(rows).set_index("Route")
         st.dataframe(df, use_container_width=True)
