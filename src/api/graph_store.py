@@ -113,15 +113,17 @@ class RouteGraph:
 
     def path_edge_scores(self, path: list[int], lt: str, night: bool) -> list[dict]:
         scores = self._scores[(lt, night)]
+        cost = self._safe_costs[(lt, night)]
         result = []
         for u, v in zip(path[:-1], path[1:]):
             ei = self._edge_idx(u, v)
             result.append({
                 "street":         self.edge_names[ei],
                 "safety_score":   round(float(scores[ei]),          3),
+                "safety_cost":    round(float(cost[ei]),            3),
                 "infrastructure": round(float(self.edge_infra[ei]), 3),
                 "walk_score":     round(float(self.edge_walk[ei]),   3),
-                "length_m":       round(float(self.edge_length[ei]), 1),
+                "length_m":       round(float(self.edge_length[ei]), 1)
             })
         return result
 

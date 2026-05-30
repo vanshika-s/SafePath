@@ -248,12 +248,14 @@ with st.sidebar:
         st.markdown('<div class="sl">Routes</div>', unsafe_allow_html=True)
 
         for mode, cfg in ROUTE_CFG.items():
-            r      = result["routes"][mode]
-            scores = r.get("edge_scores", [])
-            avg    = f"{sum(e['safety_score'] for e in scores)/len(scores):.2f}" if scores else "—"
-            active = st.session_state.active_mode == mode
-            border = f"border-color:{cfg['color']};" if active else ""
-            bg     = "background:#eff6ff;" if active else ""
+            r              = result["routes"][mode]
+            scores         = r.get("edge_scores", [])
+            total_cost     = sum(e["safety_cost"] for e in scores)
+            total_length   = sum(e["length_m"] for e in scores)
+            safety_percent = f"{round((1 - (total_cost - total_length) / (4 * total_length)) * 100)}" if scores else "—"
+            active         = st.session_state.active_mode == mode
+            border         = f"border-color:{cfg['color']};" if active else ""
+            bg             = "background:#eff6ff;" if active else ""
 
             st.markdown(
                 f'<div class="rc {"active" if active else ""}" style="{border}{bg}">'
@@ -262,7 +264,7 @@ with st.sidebar:
                 f'<span class="rc-dot" style="background:{cfg["color"]}"></span>'
                 f'{cfg["icon"]} {cfg["label"]}'
                 f'</span>'
-                f'<span class="rc-score">Score {avg}</span>'
+                f'<span class="rc-score">Score {safety_percent}</span>'
                 f'</div>'
                 f'<div class="rc-stats">'
                 f'<span class="rc-val">{r["distance_mi"]} mi</span>'
@@ -493,9 +495,11 @@ with tab_compare:
 
         cols = st.columns(3)
         for (mode, cfg), col in zip(ROUTE_CFG.items(), cols):
-            r      = result["routes"][mode]
-            scores = r.get("edge_scores", [])
-            avg    = sum(e["safety_score"] for e in scores) / len(scores) if scores else 0
+            r              = result["routes"][mode]
+            scores         = r.get("edge_scores", [])
+            total_cost     = sum(e["safety_cost"] for e in scores)
+            total_length   = sum(e["length_m"] for e in scores)
+            safety_percent = round((1 - (total_cost - total_length) / (4 * total_length)) * 100)
 
             with col:
                 st.markdown(
@@ -506,8 +510,8 @@ with tab_compare:
                     f'<div class="cmp-stat-val">{r["distance_mi"]} mi</div>'
                     f'<div class="cmp-stat-label">Walk time</div>'
                     f'<div class="cmp-stat-val">{r["time_min"]} min</div>'
-                    f'<div class="cmp-stat-label">Avg safety score</div>'
-                    f'<div class="cmp-score-val" style="color:{cfg["color"]}">{avg:.2f}</div>'
+                    f'<div class="cmp-stat-label">Safety Percent</div>'
+                    f'<div class="cmp-score-val" style="color:{cfg["color"]}">{safety_percent}%</div>'
                     f'</div>',
                     unsafe_allow_html=True,
                 )
