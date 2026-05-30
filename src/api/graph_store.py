@@ -7,7 +7,6 @@ Only contains code used at runtime by the app. Build-time logic
 
 import math
 import heapq
-import os
 import pickle
 
 import numpy as np
@@ -59,8 +58,7 @@ class RouteGraph:
             rg._scores[(lt, night)]         = np.load(f"{directory}/score_{lt}_{tod}.npy")
             rg._safe_costs[(lt, night)]     = np.load(f"{directory}/safecost_{lt}_{tod}.npy")
             rg._balanced_costs[(lt, night)] = np.load(f"{directory}/balcost_{lt}_{tod}.npy")
-            crime_path = f"{directory}/crime_{lt}_{tod}.npy"
-            rg._crime_scores[(lt, night)]   = np.load(crime_path) if os.path.exists(crime_path) else None
+            rg._crime_scores[(lt, night)]   = np.load(f"{directory}/crime_{lt}_{tod}.npy")
 
         rg._N = len(rg.node_ids)
         rg._build_runtime(rg._N)
