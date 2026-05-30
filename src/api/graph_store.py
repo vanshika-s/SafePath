@@ -114,23 +114,21 @@ class RouteGraph:
         return [(float(self.node_lats[i]), float(self.node_lngs[i])) for i in path]
 
     def path_edge_scores(self, path: list[int], lt: str, night: bool) -> list[dict]:
-        scores  = self._scores[(lt, night)]
-        cost    = self._safe_costs[(lt, night)]
-        crimes  = self._crime_scores.get((lt, night))
-        result  = []
+        scores = self._scores[(lt, night)]
+        cost   = self._safe_costs[(lt, night)]
+        crimes = self._crime_scores[(lt, night)]
+        result = []
         for u, v in zip(path[:-1], path[1:]):
-            ei  = self._edge_idx(u, v)
-            row = {
+            ei = self._edge_idx(u, v)
+            result.append({
                 "street":         self.edge_names[ei],
                 "safety_score":   round(float(scores[ei]),          3),
                 "safety_cost":    round(float(cost[ei]),            3),
+                "crime_score":    round(float(crimes[ei]),          3),
                 "infrastructure": round(float(self.edge_infra[ei]), 3),
                 "walk_score":     round(float(self.edge_walk[ei]),  3),
                 "length_m":       round(float(self.edge_length[ei]),1),
-            }
-            if crimes is not None:
-                row["crime_score"] = round(float(crimes[ei]), 3)
-            result.append(row)
+            })
         return result
 
     def path_steps(self, path: list[int]) -> list[dict]:

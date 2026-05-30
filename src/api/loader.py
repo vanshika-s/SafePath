@@ -55,8 +55,20 @@ def load_crime_points() -> dict:
     if _crime is not None:
         return _crime
 
+    from datetime import datetime
+    from astral import LocationInfo
+    from astral.sun import sun
+    from dateutil import tz
+
+    local_tz  = tz.tzlocal()
+    _s        = sun(LocationInfo(latitude=32.8801, longitude=-117.234).observer,
+                    date=datetime.now(local_tz), tzinfo=local_tz)
+    dawn_hour = _s["dawn"].hour + _s["dawn"].minute / 60
+    dusk_hour = _s["dusk"].hour + _s["dusk"].minute / 60
+
     gdf      = gpd.read_file(_CRIME_PATH)
-    day_mask = ((gdf["HOUR"] >= 6) & (gdf["HOUR"] < 20)).values
+    hours    = gdf["HOUR"].values
+    day_mask = ((hours >= dawn_hour) & (hours < dusk_hour))
     lats     = gdf.geometry.y.values
     lngs     = gdf.geometry.x.values
 
