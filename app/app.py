@@ -12,9 +12,9 @@ from streamlit_folium import st_folium
 from streamlit_searchbox import st_searchbox
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from astral import LocationInfo
 from astral.sun import sun as _astral_sun
-from dateutil import tz
 
 from src.api import loader, pipeline
 from src.api.day_night import is_night_now
@@ -196,11 +196,11 @@ def _step_html(i: int, step: dict) -> str:
 with st.sidebar:
     tod = is_night_now()
 
-    # Time / day-night card (shown first)
-    _local_tz  = tz.tzlocal()
-    _now       = datetime.now(_local_tz)
+    # Time / day-night card — always San Diego local time, regardless of server tz
+    _sd_tz     = ZoneInfo("America/Los_Angeles")
+    _now       = datetime.now(_sd_tz)
     _loc       = LocationInfo(latitude=32.8801, longitude=-117.234)
-    _s         = _astral_sun(_loc.observer, date=_now, tzinfo=_local_tz)
+    _s         = _astral_sun(_loc.observer, date=_now.date(), tzinfo=_sd_tz)
     _time_str  = _now.strftime("%-I:%M %p")
     _dawn_str  = _s["dawn"].strftime("%-I:%M %p")
     _dusk_str  = _s["dusk"].strftime("%-I:%M %p")

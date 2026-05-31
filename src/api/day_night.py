@@ -1,18 +1,24 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
+
 from astral import LocationInfo
 from astral.sun import sun
-from dateutil import tz
+
+# SafePath only covers San Diego, so day/night is always evaluated in
+# San Diego's local time — independent of whatever timezone the server runs in.
+_SD_TZ = ZoneInfo("America/Los_Angeles")
 
 
 def is_night(lat: float = 32.8801, lng: float = -117.234) -> bool:
-    """Return True if the current local time is after dusk or before dawn."""
-    location   = LocationInfo(latitude=lat, longitude=lng)
-    local_tz   = tz.tzlocal()
-    s          = sun(location.observer, date=datetime.now(), tzinfo=local_tz)
-    dawn_hour  = s["dawn"].hour + s["dawn"].minute / 60
-    dusk_hour  = s["dusk"].hour + s["dusk"].minute / 60
-    exact_hour = datetime.now().hour + datetime.now().minute / 60
-    return exact_hour >= dusk_hour or exact_hour <= dawn_hour
+    """Return True if it is currently after dusk or before dawn in San Diego.
+
+    Compares timezone-aware datetimes directly (not extracted hour floats), so
+    it stays correct no matter what timezone the host machine is set to.
+    """
+    location = LocationInfo(latitude=lat, longitude=lng)
+    now      = datetime.now(_SD_TZ)
+    s        = sun(location.observer, date=now.date(), tzinfo=_SD_TZ)
+    return now < s["dawn"] or now > s["dusk"]
 
 
 def is_night_now() -> bool:
