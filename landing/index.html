@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SafePath — Walking routes that keep you safe</title>
+<meta name="description" content="SafePath finds walking routes in San Diego that are safer, not just faster — scoring every street by crime, lighting, and walkability." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+:root{
+  --bg:#ffffff;
+  --bg-soft:#f5faf7;
+  --bg-mint:#ecfdf5;
+  --panel:#ffffff;
+  --line:#e2ece6;
+  --line-2:#d3e5db;
+  --text:#0d2a1f;
+  --muted:#5b7367;
+  --faint:#8aa195;
+  --green:#059669;
+  --green-deep:#047857;
+  --green-bright:#10b981;
+  --mint:#34d399;
+  --safe:#059669;
+  --bal:#f59e0b;
+  --fast:#3b82f6;
+  --glow:rgba(16,185,129,.25);
+  --shadow:0 18px 50px -22px rgba(6,95,70,.35);
+  --maxw:1180px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.display{font-family:'Space Grotesk','Inter',sans-serif;letter-spacing:-.02em;line-height:1.08}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--green);margin-bottom:16px;display:inline-block}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:18px 24px;background:rgba(255,255,255,0);transition:all .4s ease;border-bottom:1px solid transparent}
+nav.scrolled{background:rgba(255,255,255,.85);backdrop-filter:blur(14px);border-bottom-color:var(--line);padding:13px 24px}
+.brand{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk';font-weight:700;font-size:19px;color:var(--text)}
+.brand .dot{width:11px;height:11px;border-radius:50%;background:var(--green-bright);box-shadow:0 0 14px var(--glow)}
+.nav-links{display:flex;gap:30px;align-items:center}
+.nav-links a{font-size:14px;color:var(--muted);transition:color .2s}
+.nav-links a:hover{color:var(--green-deep)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:11px;font-weight:600;font-size:14px;background:linear-gradient(135deg,var(--green-bright),var(--green-deep));color:#fff;border:none;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 10px 26px -10px var(--glow)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 16px 36px -10px var(--glow)}
+.btn.ghost{background:#fff;color:var(--green-deep);border:1px solid var(--line-2);box-shadow:none}
+.btn.ghost:hover{border-color:var(--green-bright);background:var(--bg-mint)}
+@media(max-width:760px){.nav-links{display:none}}
+
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;background:var(--bg)}
+.hero-bg{position:absolute;inset:0;z-index:0}
+.hero-bg::before{content:"";position:absolute;inset:0;background:radial-gradient(820px 560px at 78% 18%,rgba(16,185,129,.16),transparent 60%),radial-gradient(680px 520px at 12% 88%,rgba(5,150,105,.12),transparent 60%),linear-gradient(180deg,#ffffff,var(--bg-soft))}
+.grid-overlay{position:absolute;inset:0;opacity:.55;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:54px 54px;-webkit-mask-image:radial-gradient(circle at 72% 38%,#000 0%,transparent 72%);mask-image:radial-gradient(circle at 72% 38%,#000 0%,transparent 72%)}
+.hero-routes{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.hero-inner{position:relative;z-index:2;padding-top:90px;max-width:780px}
+.hero h1{font-size:clamp(40px,6.6vw,78px);font-weight:700;margin-bottom:22px;color:var(--text)}
+.hero h1 .accent{background:linear-gradient(120deg,var(--green-bright),var(--green-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.lead{font-size:clamp(17px,2.2vw,21px);color:var(--muted);max-width:580px;margin-bottom:34px}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.scroll-ind{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--faint);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+.mouse{width:22px;height:36px;border:2px solid var(--line-2);border-radius:12px;position:relative}
+.mouse::after{content:"";position:absolute;top:7px;left:50%;transform:translateX(-50%);width:3px;height:7px;border-radius:2px;background:var(--green-bright);animation:scrolly 1.6s ease infinite}
+@keyframes scrolly{0%{opacity:0;transform:translate(-50%,0)}40%{opacity:1}80%{opacity:0;transform:translate(-50%,12px)}100%{opacity:0}}
+.route-legend{display:flex;gap:18px;margin-top:30px;flex-wrap:wrap}
+.route-legend .item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.route-legend .swatch{width:24px;height:4px;border-radius:3px}
+.tag-pill{display:inline-block;padding:6px 14px;border-radius:20px;background:var(--bg-mint);border:1px solid var(--line-2);color:var(--green-deep);font-size:12px;font-weight:600;margin-bottom:22px}
+
+section{position:relative;padding:110px 0}
+.section-head{max-width:660px;margin-bottom:60px}
+.section-head.center{margin-left:auto;margin-right:auto;text-align:center}
+.section-head h2{font-size:clamp(30px,4.4vw,48px);font-weight:700;margin-bottom:18px;color:var(--text)}
+.section-head p{font-size:17px;color:var(--muted)}
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.08s}.reveal.d2{transition-delay:.16s}.reveal.d3{transition-delay:.24s}.reveal.d4{transition-delay:.32s}
+
+.stats{background:linear-gradient(180deg,var(--bg-mint),#fff);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.stat{padding:30px 24px;background:var(--panel);border:1px solid var(--line);border-radius:16px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.stat::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--mint),var(--green-deep))}
+.stat .num{font-family:'Space Grotesk';font-size:clamp(30px,4vw,44px);font-weight:700;line-height:1;color:var(--green-deep)}
+.stat .lbl{margin-top:10px;font-size:14px;color:var(--text);font-weight:600}
+.stat .sub{margin-top:3px;font-size:12px;color:var(--faint)}
+@media(max-width:880px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+@media(max-width:880px){.split{grid-template-columns:1fr;gap:40px}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:30px;box-shadow:var(--shadow)}
+.card h3{font-size:20px;margin-bottom:10px;color:var(--text)}
+.card p{color:var(--muted);font-size:15px}
+.problem-list{display:flex;flex-direction:column;gap:16px}
+.problem-list .row{display:flex;gap:14px;align-items:flex-start}
+.problem-list .ic{flex-shrink:0;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:18px;background:var(--bg-mint);border:1px solid var(--line-2)}
+.problem-list .row b{color:var(--text)}
+.compare-viz{aspect-ratio:1.15;border-radius:18px;border:1px solid var(--line);background:linear-gradient(160deg,#fff,var(--bg-soft));position:relative;overflow:hidden;box-shadow:var(--shadow)}
+
+.scoring{background:linear-gradient(180deg,#fff,var(--bg-mint))}
+.score-panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:38px;max-width:760px;margin:0 auto;box-shadow:var(--shadow)}
+.tod-toggle{display:inline-flex;background:var(--bg-soft);border:1px solid var(--line);border-radius:12px;padding:5px;margin-bottom:34px;gap:4px}
+.tod-toggle button{border:none;background:transparent;color:var(--muted);font-weight:600;font-size:14px;padding:9px 22px;border-radius:8px;cursor:pointer;transition:all .25s}
+.tod-toggle button.active{background:linear-gradient(135deg,var(--green-bright),var(--green-deep));color:#fff;box-shadow:0 8px 18px -8px var(--glow)}
+.weight-row{margin-bottom:22px}
+.weight-row .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.weight-row .name{font-weight:600;font-size:15px;display:flex;align-items:center;gap:10px;color:var(--text)}
+.weight-row .name .tag{font-size:11px;color:var(--faint);font-weight:500}
+.weight-row .pct{font-family:'Space Grotesk';font-weight:700;font-size:20px;color:var(--green-deep)}
+.bar{height:13px;border-radius:8px;background:var(--bg-soft);overflow:hidden;position:relative;border:1px solid var(--line)}
+.bar .fill{height:100%;border-radius:8px;width:0;transition:width 1s cubic-bezier(.2,.7,.2,1)}
+.bar .fill.crime{background:linear-gradient(90deg,#34d399,#047857)}
+.bar .fill.walk{background:linear-gradient(90deg,#6ee7b7,#10b981)}
+.bar .fill.infra{background:linear-gradient(90deg,#a7f3d0,#059669)}
+.score-formula{margin-top:26px;padding:18px;background:var(--bg-mint);border:1px solid var(--line-2);border-radius:12px;font-family:'Space Grotesk';font-size:14px;color:var(--muted);text-align:center}
+.score-formula b{color:var(--green-deep)}
+.ds-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+@media(max-width:880px){.ds-grid{grid-template-columns:1fr}}
+.ds-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:var(--shadow);border-top:4px solid var(--c)}
+.ds-top{display:flex;align-items:center;gap:13px;margin-bottom:16px}
+.ds-ic{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;font-size:22px;background:var(--bg-mint);border:1px solid var(--line-2)}
+.ds-name{font-family:'Space Grotesk';font-weight:700;font-size:18px;color:var(--text)}
+.ds-w{font-size:12px;font-weight:600;color:var(--c)}
+.ds-src{display:inline-block;font-size:12px;font-weight:600;color:var(--green-deep);background:var(--bg-mint);border:1px solid var(--line-2);border-radius:8px;padding:4px 10px;margin-bottom:14px}
+.ds-card p{font-size:14px;color:var(--muted);margin-bottom:14px}
+.ds-why{font-size:13px;color:var(--text);background:var(--bg-soft);border:1px solid var(--line);border-radius:11px;padding:13px 15px;line-height:1.5}
+.ds-why b{color:var(--green-deep)}
+
+
+.demo{background:var(--bg-soft)}
+.demo-shell{display:grid;grid-template-columns:300px 1fr 300px;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--panel);box-shadow:var(--shadow)}
+@media(max-width:980px){.demo-shell{grid-template-columns:1fr}}
+.demo-dir-panel{border-left:1px solid var(--line);padding:22px;overflow-y:auto;max-height:560px}
+@media(max-width:980px){.demo-dir-panel{border-left:none;border-top:1px solid var(--line);max-height:340px}}
+.demo-side{padding:26px;border-right:1px solid var(--line)}
+@media(max-width:880px){.demo-side{border-right:none;border-bottom:1px solid var(--line)}}
+.demo-side h3{font-size:16px;margin-bottom:4px;color:var(--text)}
+.demo-side .route-meta{font-size:12px;color:var(--faint);margin-bottom:22px}
+.mode-btns{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.mode-btn{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:12px;border:1.5px solid var(--line);background:#fff;cursor:pointer;transition:all .2s;text-align:left}
+.mode-btn:hover{border-color:var(--line-2)}
+.mode-btn.active{border-color:currentColor;background:var(--bg-mint)}
+.mode-btn .l{display:flex;align-items:center;gap:10px}
+.mode-btn .dot{width:11px;height:11px;border-radius:50%}
+.mode-btn .nm{font-weight:600;font-size:14px;color:var(--text)}
+.mode-btn .mi{font-size:12px;color:var(--muted)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}
+.metric{background:var(--bg-soft);border:1px solid var(--line);border-radius:12px;padding:14px}
+.metric .v{font-family:'Space Grotesk';font-size:22px;font-weight:700;color:var(--text)}
+.metric .k{font-size:11px;color:var(--faint);margin-top:2px}
+.demo-toggle{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+.switch{width:40px;height:22px;border-radius:11px;background:var(--line-2);position:relative;transition:background .25s;flex-shrink:0}
+.switch.on{background:var(--green-bright)}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .25s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch.on::after{transform:translateX(18px)}
+#demo-map{width:100%;height:560px;background:#eef4f1}
+@media(max-width:880px){#demo-map{height:440px}}
+.demo-note{font-size:12px;color:var(--faint);margin-top:18px;line-height:1.5}
+.demo-dir-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:0 0 8px}
+.demo-dir{padding-right:4px}
+.demo-dir .dstep{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.demo-dir .dstep:last-child{border-bottom:none}
+.demo-dir .di{width:26px;height:26px;border-radius:50%;background:var(--bg-mint);border:1px solid var(--line-2);display:grid;place-items:center;font-size:13px;flex-shrink:0}
+.demo-dir .di.dest{background:#fee2e2;border-color:#fecaca}
+.demo-dir .db{flex:1;min-width:0}
+.demo-dir .dn{font-size:10px;font-weight:700;color:var(--faint)}
+.demo-dir .dt{font-size:13px;font-weight:500;color:var(--text);line-height:1.4}
+.demo-dir .dd{font-size:11px;color:var(--muted);margin-top:1px}
+.leaflet-container{background:#eef4f1!important;font-family:inherit}
+
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:20px}
+@media(max-width:880px){.pipe{grid-template-columns:1fr 1fr}}
+.pstep{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 18px;box-shadow:var(--shadow)}
+.pstep .n{font-family:'Space Grotesk';font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px}
+.pstep h4{font-size:15px;margin-bottom:6px;color:var(--text)}
+.pstep p{font-size:13px;color:var(--muted)}
+.speed-badge{display:inline-flex;align-items:center;gap:10px;margin-top:30px;padding:14px 20px;border-radius:14px;background:var(--bg-mint);border:1px solid var(--line-2);font-size:14px;color:var(--text)}
+.speed-badge b{color:var(--green-deep);font-family:'Space Grotesk'}
+
+.final-cta{text-align:center;padding:120px 0;background:linear-gradient(180deg,var(--bg-mint),#fff)}
+.final-cta h2{font-size:clamp(32px,5vw,56px);margin-bottom:20px;color:var(--text)}
+.final-cta h2 .accent{background:linear-gradient(120deg,var(--green-bright),var(--green-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+.final-cta p{color:var(--muted);font-size:18px;max-width:520px;margin:0 auto 34px}
+footer{border-top:1px solid var(--line);padding:50px 0;background:#fff}
+.foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
+.foot .muted{color:var(--faint);font-size:13px}
+.foot a{color:var(--muted);font-size:14px;transition:color .2s}
+.foot a:hover{color:var(--green-deep)}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="brand"><span class="dot"></span> SafePath</div>
+  <div class="nav-links">
+    <a href="#problem">Problem</a>
+    <a href="#solution">Solution</a>
+    <a href="#scoring">Scoring</a>
+    <a href="#demo">Live Demo</a>
+    <a href="#build">How it works</a>
+  </div>
+  <a class="btn" href="/app">Launch App →</a>
+</nav>
+
+<header class="hero">
+  <div class="hero-bg"><div class="grid-overlay"></div></div>
+  <svg class="hero-routes" id="heroRoutes" preserveAspectRatio="none" viewBox="0 0 1440 900"></svg>
+  <div class="wrap hero-inner">
+    <span class="tag-pill">DS3 @ UC San Diego · Data Science Project</span>
+    <h1>The shortest route<br>isn't always the <span class="accent">safest</span>.</h1>
+    <p class="lead">SafePath finds walking routes across San Diego that feel safer — scoring every single street by crime, lighting, and walkability, then showing you the safest, fastest, and balanced way there.</p>
+    <div class="hero-cta">
+      <a class="btn" href="/app">Launch the app</a>
+      <a class="btn ghost" href="#demo">Explore the demo</a>
+    </div>
+    <div class="route-legend">
+      <div class="item"><span class="swatch" style="background:#059669"></span> Safest</div>
+      <div class="item"><span class="swatch" style="background:#f59e0b"></span> Balanced</div>
+      <div class="item"><span class="swatch" style="background:#3b82f6"></span> Fastest</div>
+    </div>
+  </div>
+  <div class="scroll-ind"><div class="mouse"></div>Scroll</div>
+</header>
+
+<section class="stats" id="stats" style="padding:70px 0">
+  <div class="wrap">
+    <div class="stat-grid">
+      <div class="stat reveal"><div class="num" data-count="251999">0</div><div class="lbl">Intersections mapped</div><div class="sub">across San Diego</div></div>
+      <div class="stat reveal d1"><div class="num" data-count="686326">0</div><div class="lbl">Street segments scored</div><div class="sub">every edge, individually</div></div>
+      <div class="stat reveal d2"><div class="num" data-count="46169">0</div><div class="lbl">Crime incidents analyzed</div><div class="sub">SDPD calls for service</div></div>
+      <div class="stat reveal d3"><div class="num" data-count="5934" data-suffix=" mi">0</div><div class="lbl">Walkable network</div><div class="sub">total miles of paths</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="split">
+      <div class="reveal">
+        <span class="eyebrow">The Problem</span>
+        <h2 style="font-size:clamp(28px,4vw,42px);margin-bottom:20px">Maps optimize for time.<br>People optimize for safety.</h2>
+        <p style="color:var(--muted);font-size:17px;margin-bottom:28px">Every navigation app sends you down the fastest path — even if that means a dark underpass, a street with no sidewalk, or a block with a history of incidents. For anyone walking alone, at night, or in an unfamiliar area, "fastest" and "safest" are rarely the same route.</p>
+        <div class="problem-list">
+          <div class="row"><div class="ic">🌙</div><div><b>Walking after dark</b><div style="color:var(--muted);font-size:14px">Lighting and visibility change everything — but standard maps ignore them entirely.</div></div></div>
+          <div class="row"><div class="ic">🚷</div><div><b>Missing sidewalks</b><div style="color:var(--muted);font-size:14px">The quickest line often routes pedestrians onto roads built only for cars.</div></div></div>
+          <div class="row"><div class="ic">📍</div><div><b>Blind to local crime</b><div style="color:var(--muted);font-size:14px">Routing engines have no idea which blocks people actually avoid.</div></div></div>
+        </div>
+      </div>
+      <div class="reveal d2">
+        <div class="compare-viz"><svg id="compareViz" width="100%" height="100%" viewBox="0 0 480 420" preserveAspectRatio="xMidYMid meet"></svg></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="solution" style="background:linear-gradient(180deg,var(--bg-soft),#fff)">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow">The Solution</span>
+      <h2>Three routes. One honest answer.</h2>
+      <p>SafePath scores all 686,000 street segments, then runs three weighted shortest-path searches so you can choose your own trade-off between speed and safety.</p>
+    </div>
+    <div class="split" style="grid-template-columns:1fr 1fr 1fr;gap:24px">
+      <div class="card reveal" style="border-top:3px solid var(--safe)">
+        <div class="problem-list" style="margin-bottom:6px"><div class="ic" style="background:#d1fae5;border-color:#a7f3d0">🛡️</div></div>
+        <h3 style="margin-top:14px">Safest</h3>
+        <p>Aggressively avoids high-crime, poorly-lit, low-walkability segments. Adds a heavy penalty to risky streets so the path routes around them.</p>
+      </div>
+      <div class="card reveal d1" style="border-top:3px solid var(--bal)">
+        <div class="problem-list" style="margin-bottom:6px"><div class="ic" style="background:#fef3c7;border-color:#fde68a">⚖️</div></div>
+        <h3 style="margin-top:14px">Balanced</h3>
+        <p>A middle ground — accepts a slightly longer walk to skip the worst blocks, without the full detour of the safest route.</p>
+      </div>
+      <div class="card reveal d2" style="border-top:3px solid var(--fast)">
+        <div class="problem-list" style="margin-bottom:6px"><div class="ic" style="background:#dbeafe;border-color:#bfdbfe">⚡</div></div>
+        <h3 style="margin-top:14px">Fastest</h3>
+        <p>The classic shortest path by distance — shown for comparison so you can see exactly what safety costs you in time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="scoring" id="scoring">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow">The Safety Score</span>
+      <h2>What makes a street "safe"?</h2>
+      <p>Every segment gets a 0–1 score blended from three signals. The weights shift automatically between day and night — because lighting matters more after dark.</p>
+    </div>
+    <div class="score-panel reveal d1">
+      <div style="text-align:center">
+        <div class="tod-toggle">
+          <button id="dayBtn" class="active" onclick="setTod('day')">☀️ Daytime</button>
+          <button id="nightBtn" onclick="setTod('night')">🌙 Nighttime</button>
+        </div>
+      </div>
+      <div class="weight-row">
+        <div class="top"><div class="name">🚨 Crime <span class="tag">SDPD calls for service</span></div><div class="pct" id="pct-crime">50%</div></div>
+        <div class="bar"><div class="fill crime" id="bar-crime"></div></div>
+      </div>
+      <div class="weight-row">
+        <div class="top"><div class="name">🚶 Walkability <span class="tag">EPA Smart Location Index</span></div><div class="pct" id="pct-walk">25%</div></div>
+        <div class="bar"><div class="fill walk" id="bar-walk"></div></div>
+      </div>
+      <div class="weight-row">
+        <div class="top"><div class="name">💡 Infrastructure <span class="tag">lighting + road type</span></div><div class="pct" id="pct-infra">25%</div></div>
+        <div class="bar"><div class="fill infra" id="bar-infra"></div></div>
+      </div>
+      <div class="score-formula">
+        safety score = <b id="f-crime">0.50</b>·crime + <b id="f-walk">0.25</b>·walk + <b id="f-infra">0.25</b>·infrastructure
+      </div>
+    </div>
+
+    <div class="section-head center reveal" style="margin-top:90px;margin-bottom:40px">
+      <span class="eyebrow">The Data Behind It</span>
+      <h2>Real public data, one score</h2>
+      <p>Each signal comes from a real, public source — here's what each one is and why it earns its weight in the safety score.</p>
+    </div>
+    <div class="ds-grid">
+      <div class="ds-card reveal" style="--c:#047857">
+        <div class="ds-top"><div class="ds-ic">🚨</div><div><div class="ds-name">Crime</div><div class="ds-w">50% day · 45% night</div></div></div>
+        <div class="ds-src">SDPD Calls for Service · 3 years</div>
+        <p>Three full years of San Diego Police Department calls for service, each geocoded to a point on the map. We score every street by how few incidents happened nearby — separately for day and night.</p>
+        <div class="ds-why"><b>Why it matters:</b> three years is enough history to tell a recurring pattern from a one-off, so a street only reads "risky" if incidents keep happening there. It's the most direct measure of where people feel unsafe — the heaviest weight, and heavier still at night.</div>
+      </div>
+      <div class="ds-card reveal d1" style="--c:#10b981">
+        <div class="ds-top"><div class="ds-ic">🚶</div><div><div class="ds-name">Walkability</div><div class="ds-w">25%</div></div></div>
+        <div class="ds-src">EPA Walkability Index + Census TIGER</div>
+        <p>An area-level measure from two sources: the <b>U.S. Walkability Index</b> (EPA Smart Location Database) for street connectivity, transit access, and land-use mix — joined to <b>Census TIGER block-group boundaries (California, 2020)</b> so each score maps to a real piece of ground.</p>
+        <div class="ds-why"><b>Why it matters — the big picture:</b> this is about the <i>whole neighborhood around you</i>, not one street. A high score means a connected, mixed-use area where other people are out walking too; a low score is car-only sprawl where you'd be on your own. It answers <i>"will this area feel alive or deserted?"</i></div>
+      </div>
+      <div class="ds-card reveal d2" style="--c:#059669">
+        <div class="ds-top"><div class="ds-ic">💡</div><div><div class="ds-name">Infrastructure</div><div class="ds-w">25% day · 30% night</div></div></div>
+        <div class="ds-src">City streetlights + OSMnx road type</div>
+        <p>A street-level measure combining San Diego's 55,000+ active <b>streetlights</b> with the <b>road type</b> of each segment, read from the OpenStreetMap network via OSMnx — a quiet residential street scores higher than a wide, fast arterial.</p>
+        <div class="ds-why"><b>Why it matters — the exact street:</b> this zooms in on the <i>specific block under your feet</i>. Two streets in the same neighborhood can be very different — one lit and quiet, the next dark and lined with fast traffic. It answers <i>"is this particular street comfortable to walk right now?"</i> and weighs more at night, when lighting counts most.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="demo" id="demo">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow">Live Demo · No app required</span>
+      <h2>See it route in real time</h2>
+      <p>A real SafePath route, computed by the actual engine — Windansea Beach to La Jolla Cove. The safest route takes an almost entirely different path than the fastest.</p>
+    </div>
+    <div class="demo-shell reveal d1">
+      <div class="demo-side">
+        <h3>Windansea Beach → La Jolla Cove</h3>
+        <div class="route-meta">Real engine output · 18% route overlap</div>
+        <div class="mode-btns" id="modeBtns"></div>
+        <div class="metrics">
+          <div class="metric"><div class="v" id="m-dist">—</div><div class="k">Distance</div></div>
+          <div class="metric"><div class="v" id="m-time">—</div><div class="k">Walk time</div></div>
+          <div class="metric"><div class="v" id="m-safety" style="color:var(--green-deep)">—</div><div class="k">Safety score</div></div>
+          <div class="metric"><div class="v" id="m-crime" style="color:var(--green)">—</div><div class="k">Crime safety</div></div>
+        </div>
+        <div class="demo-toggle" onclick="toggleHeat()">
+          <div class="switch on" id="heatSwitch"></div>
+          <span>Show crime hotspots</span>
+        </div>
+        <div class="demo-note">These three routes were generated by the same Python engine that powers the SafePath app — pre-computed here so the demo runs entirely in your browser.</div>
+      </div>
+      <div id="demo-map"></div>
+      <div class="demo-dir-panel">
+        <div class="demo-dir-label" id="demoDirLabel">Directions</div>
+        <div class="demo-dir" id="demoDir"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="build">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Under the hood</span>
+      <h2>From raw city data to a route in seconds</h2>
+      <p>Real public data gets cleaned, scored onto every street, and pre-computed so the app can find your route almost instantly.</p>
+    </div>
+    <div class="pipe">
+      <div class="pstep reveal"><div class="n">01</div><h4>Collect</h4><p>Ingest 4 public sources — 3 yrs of SDPD calls, the EPA Walkability Index, city streetlight points, and the San Diego walking graph pulled from OpenStreetMap via OSMnx.</p></div>
+      <div class="pstep reveal d1"><div class="n">02</div><h4>Clean</h4><p>Geocode call addresses to lat/long, reproject every layer to a common CRS, then spatially join each feature onto its nearest OSM edge.</p></div>
+      <div class="pstep reveal d2"><div class="n">03</div><h4>Score</h4><p>Compute crime, walkability &amp; infrastructure scores for all 686k edges, then blend them into one weighted safety score per edge — separate day and night profiles.</p></div>
+      <div class="pstep reveal d3"><div class="n">04</div><h4>Pre-compute</h4><p>Bake the scored graph into numpy arrays + a SciPy sparse matrix — six cost layers (3 modes × day/night) serialized once so cold start skips all parsing.</p></div>
+      <div class="pstep reveal d4"><div class="n">05</div><h4>Route</h4><p>On each request, geocode the endpoints, snap to the nearest nodes, and run Dijkstra over the sparse cost matrix — sub-second shortest path.</p></div>
+    </div>
+    <div class="speed-badge reveal">⚡ Pre-computing the graph cut cold start from <b>~30s</b> (parsing 300&nbsp;MB of GraphML) to <b>~2.7s</b> (memory-mapped numpy).</div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="wrap reveal">
+    <h2>Walk smarter.<br>Get there <span class="accent">safely</span>.</h2>
+    <p>Try the full interactive app, or dive into the demo above to see SafePath in action.</p>
+    <div class="hero-cta" style="justify-content:center">
+      <a class="btn" href="/app">Launch the app</a>
+      <a class="btn ghost" href="#scoring">Understand the score</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div class="brand"><span class="dot"></span> SafePath</div>
+    <div class="muted">A quarter-long data science project · DS3 at UC San Diego · Spring 2026</div>
+    <div style="display:flex;gap:24px">
+      <a href="#problem">Problem</a>
+      <a href="#scoring">Scoring</a>
+      <a href="#demo">Demo</a>
+    </div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script src="routes.js"></script>
+<script>
+const nav=document.getElementById('nav');
+addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>30));
+
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+function fmt(n){return n.toLocaleString('en-US')}
+const cio=new IntersectionObserver((es)=>{es.forEach(e=>{
+  if(!e.isIntersecting)return;
+  const el=e.target,target=+el.dataset.count,suf=el.dataset.suffix||'';
+  let t0=null,dur=1600;
+  const step=(ts)=>{if(!t0)t0=ts;const p=Math.min((ts-t0)/dur,1);const eased=1-Math.pow(1-p,3);
+    el.textContent=fmt(Math.floor(eased*target))+suf;
+    if(p<1)requestAnimationFrame(step);else el.textContent=fmt(target)+suf;};
+  requestAnimationFrame(step);cio.unobserve(el);
+})},{threshold:.5});
+document.querySelectorAll('.num[data-count]').forEach(c=>cio.observe(c));
+
+(function(){
+  const svg=document.getElementById('heroRoutes');
+  const paths=[
+    {d:`M -50 720 C 300 680, 360 420, 620 440 S 980 300, 1200 240 S 1480 160, 1520 120`,c:'#059669',w:3,delay:0},
+    {d:`M -50 760 C 320 760, 420 560, 680 540 S 1000 480, 1180 380 S 1460 320, 1520 280`,c:'#f59e0b',w:2.4,delay:.5},
+    {d:`M -50 800 C 360 820, 520 700, 760 660 S 1040 640, 1240 540 S 1470 470, 1520 440`,c:'#3b82f6',w:2.4,delay:1},
+  ];
+  paths.forEach(p=>{
+    const el=document.createElementNS('http://www.w3.org/2000/svg','path');
+    el.setAttribute('d',p.d);el.setAttribute('fill','none');el.setAttribute('stroke',p.c);
+    el.setAttribute('stroke-width',p.w);el.setAttribute('stroke-linecap','round');el.setAttribute('opacity','.9');
+    el.style.filter=`drop-shadow(0 0 6px ${p.c}55)`;svg.appendChild(el);
+    const len=el.getTotalLength();el.style.strokeDasharray=len;el.style.strokeDashoffset=len;
+    el.style.transition=`stroke-dashoffset 2.6s cubic-bezier(.4,.1,.2,1) ${p.delay}s`;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.strokeDashoffset=0}));
+    const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dot.setAttribute('r','5');dot.setAttribute('fill',p.c);dot.style.filter=`drop-shadow(0 0 6px ${p.c})`;svg.appendChild(dot);
+    let start=null;const travel=(ts)=>{if(!start)start=ts+p.delay*1000;const t=((ts-start)/4200)%1;
+      if(t>=0){const pt=el.getPointAtLength(Math.max(0,t)*len);dot.setAttribute('cx',pt.x);dot.setAttribute('cy',pt.y);dot.setAttribute('opacity',t<0.02||t>0.98?0:.95);}
+      requestAnimationFrame(travel);};requestAnimationFrame(travel);
+  });
+})();
+
+(function(){
+  const svg=document.getElementById('compareViz');if(!svg)return;const ns='http://www.w3.org/2000/svg';
+  const zone=document.createElementNS(ns,'circle');
+  zone.setAttribute('cx',250);zone.setAttribute('cy',240);zone.setAttribute('r',70);
+  zone.setAttribute('fill','rgba(239,68,68,.12)');zone.setAttribute('stroke','rgba(239,68,68,.45)');zone.setAttribute('stroke-dasharray','5 5');svg.appendChild(zone);
+  const lbl=document.createElementNS(ns,'text');
+  lbl.setAttribute('x',250);lbl.setAttribute('y',244);lbl.setAttribute('fill','#dc2626');
+  lbl.setAttribute('font-size','12');lbl.setAttribute('text-anchor','middle');lbl.setAttribute('font-family','Inter');
+  lbl.textContent='high-crime block';svg.appendChild(lbl);
+  const fast=document.createElementNS(ns,'path');
+  fast.setAttribute('d','M 70 90 L 250 240 L 410 360');fast.setAttribute('fill','none');
+  fast.setAttribute('stroke','#3b82f6');fast.setAttribute('stroke-width','3');fast.setAttribute('stroke-linecap','round');
+  const safe=document.createElementNS(ns,'path');
+  safe.setAttribute('d','M 70 90 C 120 200, 130 330, 250 350 S 380 340, 410 360');safe.setAttribute('fill','none');
+  safe.setAttribute('stroke','#059669');safe.setAttribute('stroke-width','3.4');safe.setAttribute('stroke-linecap','round');
+  [fast,safe].forEach(p=>{svg.appendChild(p);const L=p.getTotalLength();p.style.strokeDasharray=L;p.style.strokeDashoffset=L;p.style.transition='stroke-dashoffset 1.8s ease';});
+  [[70,90,'#10b981'],[410,360,'#ef4444']].forEach(a=>{const d=document.createElementNS(ns,'circle');d.setAttribute('cx',a[0]);d.setAttribute('cy',a[1]);d.setAttribute('r',7);d.setAttribute('fill',a[2]);d.setAttribute('stroke','#fff');d.setAttribute('stroke-width',3);svg.appendChild(d);});
+  const vio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){fast.style.strokeDashoffset=0;setTimeout(()=>safe.style.strokeDashoffset=0,600);vio.disconnect();}}),{threshold:.4});
+  vio.observe(svg);
+})();
+
+const WEIGHTS={day:{crime:50,walk:25,infra:25},night:{crime:45,walk:25,infra:30}};
+function setTod(t){
+  document.getElementById('dayBtn').classList.toggle('active',t==='day');
+  document.getElementById('nightBtn').classList.toggle('active',t==='night');
+  const w=WEIGHTS[t];
+  document.getElementById('bar-crime').style.width=w.crime+'%';
+  document.getElementById('bar-walk').style.width=w.walk+'%';
+  document.getElementById('bar-infra').style.width=w.infra+'%';
+  document.getElementById('pct-crime').textContent=w.crime+'%';
+  document.getElementById('pct-walk').textContent=w.walk+'%';
+  document.getElementById('pct-infra').textContent=w.infra+'%';
+  document.getElementById('f-crime').textContent=(w.crime/100).toFixed(2);
+  document.getElementById('f-walk').textContent=(w.walk/100).toFixed(2);
+  document.getElementById('f-infra').textContent=(w.infra/100).toFixed(2);
+}
+const sio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){setTod('day');sio.disconnect();}}),{threshold:.4});
+sio.observe(document.getElementById('scoring'));
+
+
+(function(){
+  const D=window.SAFEPATH_DATA;if(!D)return;
+  const CFG={safest:{label:'Safest',icon:'🛡️',color:'#059669'},balanced:{label:'Balanced',icon:'⚖️',color:'#f59e0b'},fastest:{label:'Fastest',icon:'⚡',color:'#3b82f6'}};
+  const map=L.map('demo-map',{zoomControl:true,scrollWheelZoom:false,attributionControl:false}).setView([32.723,-117.152],14);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(map);
+  let heatLayer=null,heatOn=true;
+  function drawHeat(){
+    if(heatLayer){map.removeLayer(heatLayer);heatLayer=null;}
+    if(heatOn&&D.crime_day&&D.crime_day.length){
+      heatLayer=L.heatLayer(D.crime_day,{radius:20,blur:24,minOpacity:.25,gradient:{0:'rgba(239,68,68,0)',.4:'#fca5a5',.7:'#ef4444',1:'#991b1b'}}).addTo(map);
+    }
+  }
+  window.toggleHeat=function(){heatOn=!heatOn;document.getElementById('heatSwitch').classList.toggle('on',heatOn);drawHeat();};
+  drawHeat();
+  L.circleMarker(D.origin,{radius:8,color:'#fff',weight:2,fillColor:'#10b981',fillOpacity:1}).addTo(map);
+  L.circleMarker(D.dest,{radius:8,color:'#fff',weight:2,fillColor:'#ef4444',fillOpacity:1}).addTo(map);
+  let activeLine=null,ghostLines=[],animTimer=null;
+  function clearLines(){if(activeLine){map.removeLayer(activeLine);activeLine=null;}ghostLines.forEach(l=>map.removeLayer(l));ghostLines=[];if(animTimer)clearInterval(animTimer);}
+  function selectMode(mode){
+    clearLines();
+    Object.keys(CFG).forEach(m=>{if(m===mode)return;const r=D.routes[m];if(!r)return;ghostLines.push(L.polyline(r.coords,{color:CFG[m].color,weight:3,opacity:.25}).addTo(map));});
+    const r=D.routes[mode],full=r.coords;let i=0;
+    activeLine=L.polyline([],{color:CFG[mode].color,weight:6,opacity:.95,lineCap:'round'}).addTo(map);
+    const chunk=Math.max(1,Math.floor(full.length/60));
+    animTimer=setInterval(()=>{i+=chunk;activeLine.setLatLngs(full.slice(0,i));if(i>=full.length){clearInterval(animTimer);activeLine.setLatLngs(full);}},16);
+    map.fitBounds(L.latLngBounds(full),{padding:[50,50]});
+    document.getElementById('m-dist').textContent=r.distance_mi+' mi';
+    document.getElementById('m-time').textContent=r.time_min+' min';
+    document.getElementById('m-safety').textContent=Math.round(r.safety*100)+'%';
+    document.getElementById('m-crime').textContent=Math.round(r.crime_safety*100)+'%';
+    document.querySelectorAll('.mode-btn').forEach(b=>{const on=b.dataset.mode===mode;b.classList.toggle('active',on);b.style.color=on?CFG[mode].color:'';});
+    // directions
+    document.getElementById('demoDirLabel').textContent=`Directions — ${CFG[mode].icon} ${CFG[mode].label}`;
+    const dd=document.getElementById('demoDir');dd.innerHTML='';
+    (r.steps||[]).forEach((s,i)=>{
+      const isDest=s.icon==='📍';
+      const el=document.createElement('div');el.className='dstep';
+      el.innerHTML=`<div class="di${isDest?' dest':''}">${s.icon}</div><div class="db">${isDest?'':`<div class="dn">Step ${i+1}</div>`}<div class="dt">${(s.instruction||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</div>${s.distance?`<div class="dd">${s.distance}</div>`:''}</div>`;
+      dd.appendChild(el);
+    });
+  }
+  const box=document.getElementById('modeBtns');
+  ['safest','balanced','fastest'].forEach(m=>{
+    const r=D.routes[m],c=CFG[m];
+    const b=document.createElement('div');b.className='mode-btn';b.dataset.mode=m;
+    b.innerHTML=`<span class="l"><span class="dot" style="background:${c.color}"></span><span class="nm">${c.icon} ${c.label}</span></span><span class="mi">${r?r.distance_mi+' mi':''}</span>`;
+    b.onclick=()=>selectMode(m);box.appendChild(b);
+  });
+  const dio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){selectMode('safest');dio.disconnect();}}),{threshold:.3});
+  dio.observe(document.getElementById('demo-map'));
+})();
+</script>
+</body>
+</html>

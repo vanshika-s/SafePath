@@ -12,3 +12,5 @@ astral
 python-dateutil
 geopy
 networkx
+fastapi
+uvicorn
