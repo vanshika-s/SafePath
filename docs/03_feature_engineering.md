@@ -2,9 +2,7 @@
 
 > **TL;DR.** Each cleaned dataset becomes one or two numbers attached to each street edge in the OSM walking network. The scoring step only reads those numbers, never the raw data.
 
-**Owner:** unassigned in writing. Per the [28 April meeting minutes](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing), Ruhan was assigned *"Test initial scoring on sample routes"*; nobody is explicitly the documented owner of the broader feature-engineering workflow yet.
-
-> **NOT IMPLEMENTED.** This document is a *spec*, not a code reference. There is no committed Python module or notebook that builds the OSMnx walking graph, attaches features to edges, or computes any of the features below. All recipes are pseudocode for whoever picks this up.
+**Status:** Feature engineering is complete and in production. The `safety-score-edge.ipynb` notebook built the scored edge arrays that are now loaded by `src/api/graph_store.py` at runtime. This document describes the approach taken; the canonical code lives in that notebook and in `graph_store.py`.
 
 > **Provenance of numeric defaults.** The buffer radii (50 m for crime, 50 m for lighting, 15 m for bike lanes), the ~10 m midline sample spacing, the p95 normalization choice, and the class-value table for bike facilities are **inherited defaults from a prior planning session**. They are not sourced from any team meeting or from the [design doc](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing). Treat them as proposals open for team review, not as agreed values.
 
@@ -49,11 +47,11 @@ Anything we add ourselves goes on top of those.
 
 | Feature | Source dataset | What it captures | Status |
 | - | - | - | - |
-| `crime_score_day`, `crime_score_night` | `crime_final_gdf.gpkg` | weighted crimes within 50 m, split by hour | ready to compute |
-| `walk_score` | `walkability_final_gdf.gpkg` | block group walkability (`NatWalkInd`, 1 to 20) | ready to compute |
-| `lighting_score` | `data/processed/streetlights/streetlights_processed.geojson` | density of operational lights along the segment | source data ready; spec at [`docs/data/streetlights/FEATURE_CONTRACT.md`](data/streetlights/FEATURE_CONTRACT.md) |
-| `bike_buffer_flag` | bike lanes (TBD) | does the edge run alongside a buffered bike or scooter lane | TODO, depends on Max |
-| `road_class_score` | OSM `highway` tag | residential and tertiary feel calmer than primary | optional, easy win |
+| `crime_score_day`, `crime_score_night` | `crime_final_gdf.gpkg` | weighted crimes within 50 m, split by hour | **Done** — in production graph |
+| `walk_score` | `walkability_final_gdf.gpkg` | block group walkability (`NatWalkInd`, 1 to 20) | **Done** — in production graph |
+| `lighting_score` / `infrastructure` | `streetlights_processed.geojson` | density of operational lights along the segment | **Done** — in production graph |
+| `bike_buffer_flag` | bike lanes (TBD) | does the edge run alongside a buffered bike or scooter lane | Not yet added |
+| `road_class_score` | OSM `highway` tag | residential and tertiary feel calmer than primary | Not yet added |
 
 ## How each feature is built
 

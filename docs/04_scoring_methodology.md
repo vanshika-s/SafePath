@@ -2,17 +2,7 @@
 
 > **TL;DR.** SafePath gives every street segment a `safety_score` (0 to 1, 1 is best), turns that into a `route_cost` the routing algorithm minimizes, then runs shortest path 3 times: fastest, safest, balanced. This doc is future facing. TODOs mark things still being decided.
 
-> **NOT IMPLEMENTED.** No scoring or routing code exists in the repo yet. This file is a spec; nothing in `src/` or `notebooks/` computes `safety_score`, `route_cost`, or any shortest-path call. F10 (`campus_incident_score`) and F11 (`is_on_ucsd_campus`) are listed in [`03_feature_engineering.md`](03_feature_engineering.md) but **are not part of the formula below** — the team must decide before building scoring code: drop F10/F11 OR add a 6th weight slot.
-
-> **Provenance of numeric defaults.** The route-cost amplifier (factor `4` in `route_cost = length * (1 + 4 * (1 - safety_score))`), the balanced-route blend default (`alpha = 0.5`), and the daytime cutoff that splits `crime_score_day` from `crime_score_night` (`[06:00, 18:00)`) are **inherited defaults from a prior planning session**. They are not sourced from any team meeting or from the [design doc](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing). Treat them as proposals open for team review, not as agreed values. Open question #1 in [`status.md`](status.md) explicitly leaves the daytime cutoff for the team to decide.
-
-**This week's owners:**
-
-| Person | Task |
-| - | - |
-| Matthew | Design the weighted score for safety and convenience |
-| Ajay | Compare how different weights change route results |
-| Ruhan | Prototype initial scoring on a small test area |
+> **Status: implemented and deployed.** Scoring and routing are live at [safepaths.onrender.com](https://safepaths.onrender.com). The scoring formula was built in `safety-score-edge.ipynb` and the pre-computed weight arrays are loaded at runtime by `src/api/graph_store.py`. This document describes what was built and the reasoning behind the key parameters.
 
 ## Where to find related docs
 
@@ -35,30 +25,30 @@ Two layers:
 
 Lower route cost wins.
 
-## Planned pipeline
+## Pipeline
 
 ```
 user enters address
-  → geocode address into coordinates
-  → snap coordinates to OpenStreetMap walking network
-  → assign crime + walkability + lighting features to each street edge
-  → calculate safety score per edge
-  → convert safety score into route cost
-  → run shortest path 3 times (fastest, safest, balanced)
-  → return route polylines + per segment explanation to the app
+  → geocode address into coordinates          (src/api/geocoder.py)
+  → snap coordinates to OSM walking network   (RouteGraph.nearest_node)
+  → read pre-computed safety / balanced costs (RouteGraph._csr_safe / _csr_balanced)
+  → run Dijkstra 3 times                      (fastest, safest, balanced)
+  → return route polylines + per-segment scores + turn steps
 ```
+
+Feature scores (crime, walk, lighting, infrastructure) were pre-computed in `safety-score-edge.ipynb` and saved as numpy arrays. At runtime no scoring math runs — the router reads the arrays directly.
 
 ## Inputs to the score
 
-Each edge will eventually carry these features (built in [`03_feature_engineering.md`](03_feature_engineering.md)):
+Each edge carries these features (built in `safety-score-edge.ipynb`, see [`03_feature_engineering.md`](03_feature_engineering.md)):
 
 | Feature | Range | Status |
 | - | - | - |
-| `crime_score_day`, `crime_score_night` | 0 to 1 (1 = low crime) | ready |
-| `walk_score` | 0 to 1 (normalized from `NatWalkInd`) | ready |
-| `lighting_score` | 0 to 1 | source data ready; spec at [`docs/data/streetlights/FEATURE_CONTRACT.md`](data/streetlights/FEATURE_CONTRACT.md) |
-| `bike_buffer_flag` or `bike_buffer_score` | 0 or 1 | TODO, depends on Max |
-| `road_class_score` | 0 to 1 (from OSM `highway`) | optional |
+| `crime_score_day`, `crime_score_night` | 0 to 1 (1 = low crime) | **In production** |
+| `walk_score` | 0 to 1 (normalized from `NatWalkInd`) | **In production** |
+| `infrastructure` (lighting + bike infra) | 0 to 1 | **In production** |
+| `bike_buffer_score` | 0 to 1 | Not yet added |
+| `road_class_score` | 0 to 1 (from OSM `highway`) | Not yet added |
 
 ## Draft scoring formula
 
@@ -103,7 +93,7 @@ The factor 4 is a knob. Tune it later if the safest route is always too long or 
 
 ## Route types
 
-We run shortest path 3 times using [`networkx.shortest_path`](https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.shortest_paths.generic.shortest_path.html), each with a different edge weight.
+We run Dijkstra 3 times (in `src/api/graph_store.py`), each with a different CSR weight matrix:
 
 | Route | Edge weight | Optimizes for |
 | - | - | - |
@@ -117,17 +107,15 @@ balanced_cost = alpha * length + (1 - alpha) * route_cost
 
 `alpha` is a knob between 0 and 1. **Ajay owns** picking and testing alpha. Start at `alpha = 0.5`.
 
-## What the app should eventually show
+## What the app shows
 
-For each route:
+For each route the API returns:
 
-1. Map of the route.
-2. Total distance and rough walking time.
-3. Overall safety score (length weighted average of per edge `safety_score`).
-4. **One sentence explanation** ("avoids 3 high crime blocks, prefers well lit streets").
-5. Optional per segment breakdown: street name, lighting, crime count, walkability per block.
-
-The Streamlit UI itself is not in scope yet. We plan it in Week 6 once scoring produces stable outputs on a test neighborhood. Per the [design doc](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing), the map layer will be either [Google Maps](https://developers.google.com/maps) or [Leaflet](https://leafletjs.com) — pick in Week 6.
+1. Map polyline (Leaflet, rendered in `landing/routes.js`).
+2. Total distance (miles) and estimated walk time (minutes).
+3. Per-segment breakdown: street name, safety score, crime score, walk score, infrastructure score.
+4. Turn-by-turn steps with direction icons.
+5. Crime heat map clipped to a bounding box around the routes.
 
 ## Limitations
 
@@ -141,18 +129,6 @@ Be honest about these in the app and in any presentation.
 | Walkability is a proxy | `NatWalkInd` captures street network and land use, not human comfort |
 | Lighting coverage is uneven on UCSD interior | 228 lights in the campus interior bbox, but coverage is uneven, so L4 falls back to neutral 0.5 there |
 | Safety score is a model | the app should say "looks safer in our data," not "is safe" |
-
-## How Ajay should evaluate weight choices
-
-Minimum experiment design Ajay can run as soon as the scoring formula returns numbers.
-
-1. Pick 5 to 10 start/end pairs in different parts of the city. Mix downtown, near campus, residential, less safe areas.
-2. For each pair, compute fastest, safest, balanced under at least 3 weight settings.
-3. Record per route: total distance, time estimate, length weighted `safety_score`, streets used.
-4. Look at results and answer: do safer routes feel sensible to a person who knows the area? Where do they go wrong?
-5. Write findings into [`status.md`](status.md) so Matthew can adjust weights.
-
-This is not a formal evaluation. It is the minimum check that the scoring is doing something a person agrees with.
 
 ## Connecting back to the user question
 

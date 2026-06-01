@@ -34,10 +34,12 @@ Plain English version:
 
 | Your task | Read these |
 | - | - |
-| Cleaning bike lanes (Max) | [`02_data_cleaning.md`](02_data_cleaning.md) |
-| Test initial scoring on sample routes (Ruhan, per [28 April meeting minutes](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing)) | [`03_feature_engineering.md`](03_feature_engineering.md), [`04_scoring_methodology.md`](04_scoring_methodology.md) |
-| Designing the weighted score for safety and convenience (Matthew) | [`04_scoring_methodology.md`](04_scoring_methodology.md) |
-| Comparing how different weights change routes (Ajay) | [`04_scoring_methodology.md`](04_scoring_methodology.md) |
+| Understand the scoring formula and weight choices | [`04_scoring_methodology.md`](04_scoring_methodology.md) |
+| Understand how features are attached to OSM edges | [`03_feature_engineering.md`](03_feature_engineering.md) |
+| Understand how raw data was cleaned | [`02_data_cleaning.md`](02_data_cleaning.md) |
+| Add a new data source | [`01_data_sources.md`](01_data_sources.md), [`03_feature_engineering.md`](03_feature_engineering.md) |
+| Run the app locally or add an API endpoint | `app/api_server.py`, `src/api/pipeline.py` |
+| Add or fix a test | `tests/`, `src/api/graph_store.py` |
 | New teammate, no specific task yet | [`01_data_sources.md`](01_data_sources.md), then [`status.md`](status.md) |
 
 ## Where things live
@@ -54,18 +56,18 @@ If a Google Doc starts holding final project knowledge, port the short version i
 
 ## Sprint timeline (from the [original design doc](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing))
 
-| Week | Goal |
-| - | - |
-| 1 | Research, setup, define safety features |
-| 2 | Filter and clean crime + walkability data to San Diego |
-| 3 | Design route scoring (weighted scores per neighborhood) |
-| 4 | Prototype routing engine, generate route alternatives |
-| 5 | Move scoring + routing logic out of notebooks into reusable Python modules. Let users prioritize speed, safety, or balance |
-| 6 | Build map based web app (Streamlit) |
-| 7 | Write unit tests, validate routes across neighborhoods |
-| 8 | Deploy, prepare demo + final docs |
+| Week | Goal | Status |
+| - | - | - |
+| 1 | Research, setup, define safety features | Done |
+| 2 | Filter and clean crime + walkability data to San Diego | Done |
+| 3 | Design route scoring (weighted scores per neighborhood) | Done |
+| 4 | Prototype routing engine, generate route alternatives | Done |
+| 5 | Move scoring + routing logic into reusable Python modules | Done — `src/api/` |
+| 6 | Build map-based web app | Done — Streamlit + custom landing page |
+| 7 | Write unit tests, validate routes across neighborhoods | Done — 51 tests passing |
+| 8 | Deploy, prepare demo + final docs | Done — live at [safepaths.onrender.com](https://safepaths.onrender.com) |
 
-We are in Week 4 → Week 5 transition. See [`status.md`](status.md).
+See [`status.md`](status.md) for current open items.
 
 ## Repo at a glance
 
@@ -73,23 +75,42 @@ We are in Week 4 → Week 5 transition. See [`status.md`](status.md).
 SafePath/
 ├── README.md
 ├── requirements.txt
-├── .gitignore
+├── app/
+│   ├── api_server.py        FastAPI server + static file host
+│   └── app.py               Streamlit UI
+├── landing/
+│   ├── index.html           landing page
+│   ├── app.html             map app page
+│   └── routes.js            front-end routing / map logic
+├── src/
+│   ├── api/
+│   │   ├── graph_store.py   RouteGraph + _dijkstra
+│   │   ├── loader.py        GCS download + in-memory cache
+│   │   ├── geocoder.py      Nominatim wrapper
+│   │   ├── day_night.py     sunrise/sunset check
+│   │   ├── router.py        get_routes()
+│   │   └── pipeline.py      run() — main entry point
+│   └── data/
+│       └── clean_streetlights.py
 ├── notebooks/
 │   ├── crime-df-preprocessing.ipynb
-│   └── walkability-df-preprocessing.ipynb
-├── data/                       local + raw streetlight snapshots
-│   ├── raw/streetlights/       2026-04-30 GeoJSON snapshot
-│   ├── interim/streetlights/   filtered active set
-│   └── processed/streetlights/ trimmed scoring-ready set
-├── src/data/                   download + clean scripts (streetlights)
-├── docs/                       you are here
-│   ├── 00_project_map.md
-│   ├── 01_data_sources.md
-│   ├── 02_data_cleaning.md
-│   ├── 03_feature_engineering.md
-│   ├── 04_scoring_methodology.md
-│   ├── status.md
-│   ├── status/                 older weekly snapshots
-│   └── references/             SDPD code books (CSV/PDF)
-└── app/                        planned, empty for now
+│   ├── walkability-df-preprocessing.ipynb
+│   ├── safety-score-edge.ipynb
+│   ├── scoring-engine.ipynb
+│   └── scoring-test.ipynb
+├── tests/
+│   ├── test_graph_store.py
+│   ├── test_pipeline.py
+│   ├── test_router.py
+│   ├── test_geocoder.py
+│   └── test_day_night.py
+└── docs/                    you are here
+    ├── 00_project_map.md
+    ├── 01_data_sources.md
+    ├── 02_data_cleaning.md
+    ├── 03_feature_engineering.md
+    ├── 04_scoring_methodology.md
+    ├── status.md
+    ├── status/              older weekly snapshots
+    └── references/          SDPD code books (CSV/PDF)
 ```
