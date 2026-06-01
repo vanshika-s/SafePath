@@ -371,11 +371,11 @@ with tab_map:
                         radius=18, blur=22, min_opacity=0.25,
                         max_val=_p95,
                         gradient={
-                            "0.0": "rgba(252,165,165,0)",
-                            "0.4": "#fca5a5",
-                            "0.65": "#ef4444",
-                            "0.85": "#dc2626",
-                            "1.0":  "#991b1b",
+                            "0.0":  "rgba(239,68,68,0)",
+                            "0.25": "#fca5a5",
+                            "0.5":  "#ef4444",
+                            "0.75": "#dc2626",
+                            "1.0":  "#7f1d1d",
                         },
                     ).add_to(m)
                     folium.Element(
@@ -527,12 +527,14 @@ with tab_compare:
         import pandas as pd
         rows = []
         for mode, cfg in ROUTE_CFG.items():
-            r      = result["routes"][mode]
-            scores = r.get("edge_scores", [])
-            avg       = sum(e["safety_score"]   for e in scores) / len(scores) if scores else 0
-            avg_infra = sum(e["infrastructure"] for e in scores) / len(scores) if scores else 0
-            avg_walk  = sum(e["walk_score"]     for e in scores) / len(scores) if scores else 0
-            avg_crime = sum(e["crime_score"] for e in scores) / len(scores) if scores else 0
+            r          = result["routes"][mode]
+            scores     = r.get("edge_scores", [])
+            total_len  = sum(e["length_m"]    for e in scores) or 1
+            total_cost = sum(e["safety_cost"] for e in scores)
+            avg       = round(1 - (total_cost - total_len) / (4 * total_len), 3) if scores else 0
+            avg_crime = round(sum(e["crime_score"]    * e["length_m"] for e in scores) / total_len, 3) if scores else 0
+            avg_infra = round(sum(e["infrastructure"] * e["length_m"] for e in scores) / total_len, 3) if scores else 0
+            avg_walk  = round(sum(e["walk_score"]     * e["length_m"] for e in scores) / total_len, 3) if scores else 0
             rows.append({
                 "Route":                             f"{cfg['icon']} {cfg['label']}",
                 "Distance":                          f"{r['distance_mi']} mi",

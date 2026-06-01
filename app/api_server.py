@@ -68,17 +68,21 @@ def api_route(
 
     routes_out = {}
     for mode, r in result["routes"].items():
-        sc = r["edge_scores"]
-        n  = len(sc) or 1
+        sc           = r["edge_scores"]
+        total_cost   = sum(e["safety_cost"] for e in sc)
+        total_length = sum(e["length_m"]    for e in sc) or 1
+        # Length-weighted scores — matches the Streamlit formula:
+        # cost = length × (1 + 4 × (1 − score))  →  score = 1 − (cost − length) / (4 × length)
+        safety = round(1 - (total_cost - total_length) / (4 * total_length), 3)
         routes_out[mode] = {
             "coords":       [[round(la, 5), round(lo, 5)] for la, lo in r["coords"]],
             "steps":        r["steps"],
             "distance_mi":  r["distance_mi"],
             "time_min":     r["time_min"],
-            "safety":       round(sum(e["safety_score"] for e in sc) / n, 3),
-            "crime_safety": round(sum(e["crime_score"]  for e in sc) / n, 3),
-            "infra":        round(sum(e["infrastructure"] for e in sc) / n, 3),
-            "walk":         round(sum(e["walk_score"]   for e in sc) / n, 3),
+            "safety":       safety,
+            "crime_safety": round(sum(e["crime_score"]   * e["length_m"] for e in sc) / total_length, 3),
+            "infra":        round(sum(e["infrastructure"] * e["length_m"] for e in sc) / total_length, 3),
+            "walk":         round(sum(e["walk_score"]    * e["length_m"] for e in sc) / total_length, 3),
         }
 
     return JSONResponse({

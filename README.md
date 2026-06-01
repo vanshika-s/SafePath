@@ -18,6 +18,17 @@ Type any two San Diego addresses. SafePath returns three routes on an interactiv
 4. Each route includes per-segment safety, crime, walkability, and infrastructure scores plus turn-by-turn steps.
 5. Crime points near the route are overlaid as a heat map so the user can see what the scores are based on.
 
+## How scoring works
+
+Every street edge has a `safety_score` (0–1) computed from three features:
+
+```
+safety_score = 0.50 × crime_score  +  0.25 × walk_score  +  0.25 × infrastructure   (day)
+safety_score = 0.45 × crime_score  +  0.25 × walk_score  +  0.30 × infrastructure   (night)
+```
+
+That score becomes a routing cost: `safety_cost = length × (1 + 4 × (1 − safety_score))` — so a dangerous street looks up to 5× longer to Dijkstra. All percentages displayed in the UI are **length-weighted** (longer edges count more than short ones), derived by back-calculating from `safety_cost`.
+
 ## How it is built
 
 ### Data pipeline (notebooks)

@@ -617,10 +617,27 @@ function escapeHtml(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&l
 
 function drawHeat(){
   if(heatLayer){map.removeLayer(heatLayer);heatLayer=null;}
-  if(heatOn&&DATA.crime_pts&&DATA.crime_pts.length){
-    heatLayer=L.heatLayer(DATA.crime_pts,{radius:18,blur:22,minOpacity:.2,
-      gradient:{0:'rgba(239,68,68,0)',.4:'#fca5a5',.7:'#ef4444',1:'#991b1b'}}).addTo(map);
-  }
+  if(!heatOn||!DATA.crime_pts||!DATA.crime_pts.length)return;
+
+  // Density filter — same as Streamlit: ~100m grid, keep cells with 10+ incidents
+  const CELL_LAT=0.0009,CELL_LNG=0.001,MIN_COUNT=10;
+  const counts={};
+  DATA.crime_pts.forEach(([la,lo])=>{
+    const k=Math.floor(la/CELL_LAT)+'|'+Math.floor(lo/CELL_LNG);
+    counts[k]=(counts[k]||0)+1;
+  });
+  const keep=new Set(Object.keys(counts).filter(k=>counts[k]>=MIN_COUNT));
+  const pts=DATA.crime_pts.filter(([la,lo])=>keep.has(Math.floor(la/CELL_LAT)+'|'+Math.floor(lo/CELL_LNG)));
+  if(!pts.length)return;
+
+  // p95 max intensity — same as Streamlit
+  const vals=Object.values(counts).filter((_,i)=>keep.has(Object.keys(counts)[i])).sort((a,b)=>a-b);
+  const p95=vals[Math.floor(vals.length*0.95)]||1;
+
+  heatLayer=L.heatLayer(pts,{
+    radius:18,blur:22,minOpacity:0.25,maxZoom:18,max:p95,
+    gradient:{'0.0':'rgba(239,68,68,0)','0.25':'#fca5a5','0.5':'#ef4444','0.75':'#dc2626','1.0':'#7f1d1d'},
+  }).addTo(map);
 }
 document.getElementById('heatToggle').onclick=()=>{
   heatOn=!heatOn;document.getElementById('heatSwitch').classList.toggle('on',heatOn);drawHeat();
