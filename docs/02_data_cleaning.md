@@ -28,6 +28,8 @@ The full reasoning is in the markdown cells of [`crime-df-preprocessing.ipynb`](
 7. Drop rows where geocoding failed.
 8. Save with point geometry to `crime_final_gdf.gpkg` in `EPSG:4326`.
 
+**Day/night split.** At runtime `loader.py` reads the `HOUR` column and splits all points into two arrays using real San Diego sunrise/sunset times (via `astral`). `crime["day"]` contains incidents during daylight hours; `crime["night"]` contains the rest. The app selects the matching array based on the current time — both the heatmap and the edge safety weights switch together. This is why two versions of every edge weight array are pre-computed (`crime_short_day.npy`, `crime_short_night.npy`, etc.).
+
 ### Validation checklist (crime)
 
 Run these in a fresh notebook before trusting the file.

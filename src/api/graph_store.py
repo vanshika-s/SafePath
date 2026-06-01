@@ -144,15 +144,6 @@ class RouteGraph:
                 "u": u, "v": v,
             })
 
-        # Merge consecutive same-name segments
-        merged = [dict(segs[0])]
-        for s in segs[1:]:
-            if s["name"] == merged[-1]["name"]:
-                merged[-1]["length"] += s["length"]
-                merged[-1]["v"]       = s["v"]
-            else:
-                merged.append(dict(s))
-
         def _brg(n1, n2):
             la1 = math.radians(self.node_lats[n1])
             la2 = math.radians(self.node_lats[n2])
@@ -177,6 +168,27 @@ class RouteGraph:
         def _fmt(m):
             ft = m * 3.28084
             return f"{int(round(ft / 50) * 50)} ft" if ft < 500 else f"{m * 0.000621371:.2f} mi"
+
+        # Merge consecutive same-name segments.
+        # For unnamed roads, only merge when continuing straight — real turns still show up.
+        merged = [dict(segs[0])]
+        for s in segs[1:]:
+            prev = merged[-1]
+            same_name = s["name"] == prev["name"]
+            if same_name and s["name"] != "Unnamed Road":
+                prev["length"] += s["length"]
+                prev["v"]       = s["v"]
+            elif same_name:  # unnamed — only merge if going straight
+                b_in  = _brg(prev["u"], prev["v"])
+                b_out = _brg(s["u"],    s["v"])
+                turn, _ = _turn(b_in, b_out)
+                if turn == "straight":
+                    prev["length"] += s["length"]
+                    prev["v"]       = s["v"]
+                else:
+                    merged.append(dict(s))
+            else:
+                merged.append(dict(s))
 
         b0 = _brg(merged[0]["u"], merged[0]["v"])
         steps = [{"icon": "↑",

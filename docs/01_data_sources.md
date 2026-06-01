@@ -20,7 +20,7 @@
 
 **What it has.** One row per police call. Columns include date, time, [call type](https://data.sandiego.gov/datasets/police-calls-call-types/), [priority](https://seshat.datasd.org/police_calls_for_service/pd_cfs_priority_defs_datasd.pdf), [disposition](https://data.sandiego.gov/datasets/police-calls-disposition-codes/), and address.
 
-**Why it matters.** This is the raw signal for "did something risky happen near here." We filter to confirmed pedestrian relevant calls, then geocode addresses to lat/lon points.
+**Why it matters.** This is the raw signal for "did something risky happen near here." We filter to confirmed pedestrian-relevant calls, geocode addresses to lat/lon points, and split incidents by `HOUR` into day and night buckets. The app loads whichever bucket matches the current San Diego time, so both the heatmap and the edge safety weights reflect time-of-day crime patterns.
 
 **Reference files (offline).** In [`docs/references/`](references/):
 
@@ -87,7 +87,7 @@
 
 **Why it matters.** This is the actual map we route through. Every other dataset gets attached to OSM edges so the routing engine has one place to read scores from.
 
-**Owner.** Unassigned. Per the [28 April meeting minutes](https://docs.google.com/document/d/1gufXZGHToZtFlsREL3u_rizqxXCKs3DR3LbKhO05fSc/edit?usp=sharing), Ruhan was assigned only "test initial scoring on sample routes" — nobody is the documented owner of OSM-graph wiring or feature engineering. Used downstream in scoring once an owner is named.
+**Status.** In production. The full San Diego walking network is stored as `data/processed/sd_walk_graph.graphml` and was used by `safety-score-edge.ipynb` to build the fast numpy `RouteGraph`. At runtime the server loads pre-built numpy arrays — OSMnx is not called at request time.
 
 ## A note on data freshness
 
