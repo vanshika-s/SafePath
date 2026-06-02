@@ -1,13 +1,67 @@
+# ── macOS ────────────────────────────────────────────────────────────────────
 .DS_Store
 **/.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
 
-# VSCode settings
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# ── Virtual environments ──────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+.env
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+.pytest_cache/
+**/.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+notebooks/cache/
+
+# ── IDEs ──────────────────────────────────────────────────────────────────────
 .vscode/
+.idea/
 
-# Ignore data folder and files
-data/raw/
-data/processed/
+# ── Data ──────────────────────────────────────────────────────────────────────
+/data/
 
-# Ignore CSV files
+# CSV files everywhere except docs/
 *.csv
+!docs/*.csv
 
+# tif files
+*.tif
+# Local-only learning docs (do not push)
+docs/SAFEPATH_OVERVIEW.md
+docs/SAFEPATH_GROUND_TRUTH.md
+
+# Local-only agent-system scratch (state, lessons, fix reports for next AI session)
+working/
+
+# Streamlit secrets — never commit
+.streamlit/secrets.toml

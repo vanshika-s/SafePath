@@ -1,0 +1,351 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
+.logo{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:500;color:var(--color-text-primary)}
+.logo-dot{width:9px;height:9px;border-radius:50%;background:#1D9E75}
+.nav-links{display:flex;gap:18px;font-size:12px;color:var(--color-text-secondary);cursor:pointer}
+.main{display:grid;grid-template-columns:260px 1fr;min-height:500px}
+.sidebar{padding:20px;border-right:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);display:flex;flex-direction:column;gap:16px}
+.field-lbl{font-size:11px;color:var(--color-text-secondary);margin-bottom:5px;letter-spacing:.03em}
+.plain-input{width:100%;padding:9px 10px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:8px;font-size:13px;color:var(--color-text-primary)}
+.pref-group{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.pref-btn{padding:8px 4px;border:0.5px solid var(--color-border-tertiary);border-radius:8px;font-size:11px;text-align:center;cursor:pointer;color:var(--color-text-secondary);background:var(--color-background-primary);transition:all .15s;line-height:1.4}
+.pref-btn.active{background:#E1F5EE;border-color:#1D9E75;color:#0F6E56;font-weight:500}
+.pref-btn i{display:block;font-size:17px;margin-bottom:3px}
+.btn-group{display:flex;flex-direction:column;gap:8px;margin-top:auto}
+.find-btn{background:#1D9E75;color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:opacity .15s}
+.find-btn:hover{opacity:.88}
+.find-btn.loading{opacity:.7;pointer-events:none}
+.start-btn{background:#0F6E56;color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:500;cursor:pointer;align-items:center;justify-content:center;gap:7px;transition:all .2s;display:none}
+.start-btn:hover{opacity:.88}
+.start-btn.visible{display:flex}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--color-text-secondary)}
+.toggle{width:34px;height:18px;border-radius:9px;background:var(--color-border-secondary);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:#1D9E75}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:2px;left:2px;transition:left .2s}
+.toggle.on::after{left:18px}
+.map-area{position:relative;background:#dde8d6;overflow:hidden}
+.map-canvas{width:100%;height:100%;display:block}
+.map-empty-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.map-empty-hint span{font-size:13px;color:rgba(0,0,0,0.3);background:rgba(255,255,255,0.5);padding:8px 16px;border-radius:20px}
+.legend-card{position:absolute;bottom:12px;left:12px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:9px 12px;opacity:0;transition:opacity .4s}
+.legend-card.visible{opacity:1}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.leg-item:last-child{margin-bottom:0}
+.leg-line{width:22px;height:3px;border-radius:2px}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.progress-bar-wrap{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:20px;padding:6px 14px;display:none;align-items:center;gap:10px;min-width:180px}
+.progress-bar-wrap.visible{display:flex}
+.progress-bar-bg{flex:1;height:4px;background:var(--color-background-secondary);border-radius:2px;overflow:hidden}
+.progress-bar-fill{height:100%;background:#1D9E75;border-radius:2px;width:0%;transition:width .1s linear}
+.progress-label{font-size:11px;color:var(--color-text-secondary);white-space:nowrap}
+.results-section{border-top:0.5px solid var(--color-border-tertiary);display:none}
+.results-section.visible{display:block}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px 20px;background:var(--color-background-secondary)}
+.stat-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:11px 13px}
+.stat-val{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.stat-lbl{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.explain-row{padding:16px 20px;border-top:0.5px solid var(--color-border-tertiary)}
+.explain-row h3{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px}
+.exp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.exp-card{border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:11px 12px;background:var(--color-background-primary)}
+.exp-head{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:5px}
+.exp-head i{font-size:15px}
+.exp-card p{font-size:11px;color:var(--color-text-secondary);line-height:1.5}
+.exp-badge{font-size:10px;padding:2px 7px;border-radius:20px;margin-top:7px;display:inline-block}
+.section-lbl{font-size:11px;color:var(--color-text-secondary);letter-spacing:.03em;padding-bottom:4px;border-bottom:0.5px solid var(--color-border-tertiary)}
+</style>
+
+<div class="nav">
+  <div class="logo"><div class="logo-dot"></div>SafePath</div>
+  <div class="nav-links"><span>How it works</span><span>About</span><span>Data</span></div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div>
+      <div class="field-lbl">Starting point</div>
+      <input class="plain-input" id="start-input" type="text" placeholder="e.g. UCSD Main Campus" value="UCSD Main Campus">
+    </div>
+    <div>
+      <div class="field-lbl">Destination</div>
+      <input class="plain-input" id="dest-input" type="text" placeholder="Enter destination…">
+    </div>
+    <div>
+      <div class="field-lbl">Route preference</div>
+      <div class="pref-group" id="pref-group">
+        <div class="pref-btn active" data-pref="safe"><i class="ti ti-shield-check" aria-hidden="true"></i>Safest</div>
+        <div class="pref-btn" data-pref="balanced"><i class="ti ti-route" aria-hidden="true"></i>Balanced</div>
+        <div class="pref-btn" data-pref="fast"><i class="ti ti-bolt" aria-hidden="true"></i>Fastest</div>
+      </div>
+    </div>
+
+    <div class="section-lbl">Map layers</div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div class="toggle-row"><span>Crime hotspots</span><div class="toggle on" id="tog-crime"></div></div>
+      <div class="toggle-row"><span>Streetlights</span><div class="toggle on" id="tog-lights"></div></div>
+    </div>
+
+    <div class="btn-group">
+      <button class="find-btn" id="go-btn"><i class="ti ti-search" aria-hidden="true"></i>Find routes</button>
+      <button class="start-btn" id="start-btn"><i class="ti ti-navigation" aria-hidden="true"></i>Start route</button>
+    </div>
+    <div style="font-size:11px;color:var(--color-text-secondary);line-height:1.6">Scores are automatically weighted using your route, current time, SDPD crime data, EPA walkability index, and SD streetlight records.</div>
+  </div>
+
+  <div class="map-area">
+    <canvas class="map-canvas" id="map-canvas"></canvas>
+    <div class="map-empty-hint" id="empty-hint"><span>Enter a destination and click Find routes</span></div>
+    <div class="progress-bar-wrap" id="progress-wrap">
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+      <span class="progress-label" id="progress-label">0%</span>
+    </div>
+    <div class="legend-card" id="legend-card">
+      <div class="leg-item"><div class="leg-line" style="background:#1D9E75"></div>Safest route</div>
+      <div class="leg-item"><div class="leg-line" style="background:#BA7517"></div>Balanced route</div>
+      <div class="leg-item"><div class="leg-line" style="background:#378ADD;opacity:.7"></div>Fastest route</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#E24B4A;opacity:.6"></div>Incident cluster</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#EF9F27;opacity:.7"></div>Streetlight</div>
+    </div>
+  </div>
+</div>
+
+<div class="results-section" id="results-section">
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val" id="stat-score">—</div><div class="stat-lbl">Safety score — top route</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-time">—</div><div class="stat-lbl">Estimated walk time</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-dist">—</div><div class="stat-lbl">Route distance</div></div>
+  </div>
+  <div class="explain-row">
+    <h3 id="explain-heading">Route breakdown</h3>
+    <div class="exp-grid">
+      <div class="exp-card">
+        <div class="exp-head"><i class="ti ti-shield-check" style="color:#1D9E75" aria-hidden="true"></i>Crime incidents</div>
+        <p id="exp-crime"></p>
+        <span class="exp-badge" id="badge-crime"></span>
+      </div>
+      <div class="exp-card">
+        <div class="exp-head"><i class="ti ti-walk" style="color:#378ADD" aria-hidden="true"></i>Walkability</div>
+        <p id="exp-walk"></p>
+        <span class="exp-badge" id="badge-walk"></span>
+      </div>
+      <div class="exp-card">
+        <div class="exp-head"><i class="ti ti-bulb" style="color:#BA7517" aria-hidden="true"></i>Streetlights</div>
+        <p id="exp-light"></p>
+        <span class="exp-badge" id="badge-light"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
+const isNight = (()=>{ const h = new Date().getHours(); return h >= 20 || h < 6; })();
+
+const routes = [
+  { name:'Via Torrey Pines', color:'#1D9E75', dash:[], baseScoreDay:87, baseScoreNight:82, time:'18 min', dist:'1.2 mi',
+    crime:'Avoids 2 high-density clusters near Gilman Dr based on 2024 SDPD calls for service.',
+    walk:'Passes through block groups with EPA walkability index ≥ 14 — active, pedestrian-friendly streets.',
+    light:'86% of path segments have confirmed City of San Diego streetlight coverage.',
+    crimeBadge:'Low risk', walkBadge:'Score: 14.2', lightBadge:'86% lit',
+    crimeStyle:'background:#E1F5EE;color:#0F6E56', walkStyle:'background:#E6F1FB;color:#185FA5', lightStyle:'background:#FAEEDA;color:#854F0B',
+    pts:[[60,330],[60,190],[150,190],[150,100],[300,100],[420,80]]
+  },
+  { name:'Via Regents Rd', color:'#BA7517', dash:[6,4], baseScoreDay:71, baseScoreNight:60, time:'15 min', dist:'0.9 mi',
+    crime:'Passes through 1 moderate-risk zone near Regents Rd — fewer incidents than Gilman.',
+    walk:'Block groups along this route score 11.5 on the EPA walkability index.',
+    light:'71% of segments are streetlit — some gaps near the mid-section.',
+    crimeBadge:'Moderate', walkBadge:'Score: 11.5', lightBadge:'71% lit',
+    crimeStyle:'background:#FAEEDA;color:#854F0B', walkStyle:'background:#E6F1FB;color:#185FA5', lightStyle:'background:#FAEEDA;color:#854F0B',
+    pts:[[60,330],[60,260],[200,260],[200,160],[420,80]]
+  },
+  { name:'Shortest path', color:'#378ADD', dash:[10,5], baseScoreDay:54, baseScoreNight:38, time:'12 min', dist:'0.7 mi',
+    crime:'Directly crosses a high-density incident cluster — not recommended after dark.',
+    walk:'EPA walkability score of 8.3 — fewer pedestrian amenities on this corridor.',
+    light:'Only 52% of segments confirmed lit — significant unlit stretches.',
+    crimeBadge:'High risk', walkBadge:'Score: 8.3', lightBadge:'52% lit',
+    crimeStyle:'background:#FCEBEB;color:#A32D2D', walkStyle:'background:#E6F1FB;color:#185FA5', lightStyle:'background:#FCEBEB;color:#A32D2D',
+    pts:[[60,330],[200,330],[200,260],[340,260],[420,80]]
+  }
+];
+
+const hotspots = [{x:340,y:280,r:36},{x:220,y:200,r:22}];
+const lightsData = [{x:100,y:160},{x:160,y:120},{x:240,y:100},{x:320,y:90},{x:180,y:230},{x:110,y:300},{x:270,y:200}];
+
+let state = { selectedRoute:0, showCrime:true, showLights:true, pref:'safe', routesFound:false };
+let animState = { running:false, startTime:null, duration:4000, rafId:null };
+
+function getScore(r) {
+  const base = isNight ? r.baseScoreNight : r.baseScoreDay;
+  const prefMod = state.pref==='safe'?(r===routes[0]?3:r===routes[2]?-4:0):state.pref==='fast'?(r===routes[2]?5:r===routes[0]?-3:0):0;
+  return Math.min(99,Math.max(10,Math.round(base+prefMod)));
+}
+
+function pointOnPath(pts,t,sx,sy){
+  const segs=[];let total=0;
+  for(let i=0;i<pts.length-1;i++){const dx=(pts[i+1][0]-pts[i][0])*sx,dy=(pts[i+1][1]-pts[i][1])*sy;const l=Math.sqrt(dx*dx+dy*dy);segs.push(l);total+=l;}
+  let target=t*total,acc=0;
+  for(let i=0;i<segs.length;i++){if(acc+segs[i]>=target){const f=(target-acc)/segs[i];return[(pts[i][0]+(pts[i+1][0]-pts[i][0])*f)*sx,(pts[i][1]+(pts[i+1][1]-pts[i][1])*f)*sy];}acc+=segs[i];}
+  return[pts[pts.length-1][0]*sx,pts[pts.length-1][1]*sy];
+}
+
+function resize(){const rect=canvas.parentElement.getBoundingClientRect();canvas.width=rect.width;canvas.height=rect.height||460;if(!animState.running)draw(0);}
+
+function draw(walkerT){
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const sx=W/480,sy=H/420;
+  function tx(x){return x*sx}function ty(y){return y*sy}
+
+  ctx.fillStyle=isNight?'#1e2d1e':'#dde8d6';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle=isNight?'#2a3d2a':'#c4d8bb';ctx.lineWidth=9;
+  [[0,100,480,100],[0,200,480,200],[0,310,480,310],[80,0,80,420],[180,0,180,420],[300,0,300,420],[400,0,400,420]]
+    .forEach(([x1,y1,x2,y2])=>{ctx.beginPath();ctx.moveTo(tx(x1),ty(y1));ctx.lineTo(tx(x2),ty(y2));ctx.stroke();});
+  ctx.fillStyle=isNight?'#253525':'#c9d8bf';
+  [[90,110,80,80],[90,210,80,90],[190,110,100,80],[190,210,100,90],[310,110,80,80],[310,210,80,80]]
+    .forEach(([x,y,w,h])=>{ctx.fillRect(tx(x),ty(y),tx(w),ty(h));});
+
+  if(!state.routesFound) return;
+
+  if(state.showCrime){hotspots.forEach(h=>{const g=ctx.createRadialGradient(tx(h.x),ty(h.y),0,tx(h.x),ty(h.y),tx(h.r));g.addColorStop(0,'rgba(226,75,74,0.32)');g.addColorStop(1,'rgba(226,75,74,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(tx(h.x),ty(h.y),tx(h.r),0,Math.PI*2);ctx.fill();});}
+
+  routes.forEach((r,i)=>{
+    if(i===state.selectedRoute)return;
+    ctx.strokeStyle=r.color;ctx.lineWidth=3;ctx.setLineDash(r.dash);ctx.globalAlpha=0.3;
+    ctx.beginPath();r.pts.forEach((p,j)=>j===0?ctx.moveTo(tx(p[0]),ty(p[1])):ctx.lineTo(tx(p[0]),ty(p[1])));
+    ctx.stroke();ctx.globalAlpha=1;
+  });
+
+  const sel=routes[state.selectedRoute];
+  if(walkerT>0){
+    ctx.strokeStyle=sel.color;ctx.lineWidth=5;ctx.setLineDash([]);ctx.globalAlpha=0.22;
+    ctx.beginPath();sel.pts.forEach((p,j)=>j===0?ctx.moveTo(tx(p[0]),ty(p[1])):ctx.lineTo(tx(p[0]),ty(p[1])));
+    ctx.stroke();ctx.globalAlpha=1;
+    const segs=[];let total=0;
+    for(let i=0;i<sel.pts.length-1;i++){const dx=(sel.pts[i+1][0]-sel.pts[i][0])*sx,dy=(sel.pts[i+1][1]-sel.pts[i][1])*sy;segs.push(Math.sqrt(dx*dx+dy*dy));total+=Math.sqrt(dx*dx+dy*dy);}
+    let target=walkerT*total,acc=0;
+    ctx.strokeStyle=sel.color;ctx.lineWidth=5;ctx.setLineDash([]);ctx.globalAlpha=1;
+    ctx.beginPath();ctx.moveTo(tx(sel.pts[0][0]),ty(sel.pts[0][1]));
+    for(let i=0;i<segs.length;i++){if(acc+segs[i]>=target){const f=(target-acc)/segs[i];ctx.lineTo(tx(sel.pts[i][0]+(sel.pts[i+1][0]-sel.pts[i][0])*f),ty(sel.pts[i][1]+(sel.pts[i+1][1]-sel.pts[i][1])*f));break;}acc+=segs[i];ctx.lineTo(tx(sel.pts[i+1][0]),ty(sel.pts[i+1][1]));}
+    ctx.stroke();
+  } else {
+    ctx.strokeStyle=sel.color;ctx.lineWidth=5;ctx.setLineDash([]);ctx.globalAlpha=1;
+    ctx.beginPath();sel.pts.forEach((p,j)=>j===0?ctx.moveTo(tx(p[0]),ty(p[1])):ctx.lineTo(tx(p[0]),ty(p[1])));
+    ctx.stroke();ctx.setLineDash([]);
+  }
+
+  if(state.showLights){lightsData.forEach(l=>{if(isNight){ctx.fillStyle='rgba(239,159,39,0.18)';ctx.beginPath();ctx.arc(tx(l.x),ty(l.y),tx(14),0,Math.PI*2);ctx.fill();}ctx.fillStyle=`rgba(239,159,39,${isNight?0.85:0.55})`;ctx.beginPath();ctx.arc(tx(l.x),ty(l.y),tx(7),0,Math.PI*2);ctx.fill();ctx.fillStyle='#BA7517';ctx.beginPath();ctx.arc(tx(l.x),ty(l.y),tx(3),0,Math.PI*2);ctx.fill();});}
+
+  [[tx(60),ty(330),'#1D9E75'],[tx(420),ty(80),'#378ADD']].forEach(([x,y,c])=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();});
+
+  if(walkerT>0&&walkerT<1){
+    const pos=pointOnPath(sel.pts,walkerT,sx,sy);
+    const pulse=0.5+0.5*Math.sin(Date.now()/200);
+    ctx.strokeStyle=sel.color;ctx.lineWidth=2;ctx.globalAlpha=0.3*pulse;
+    ctx.beginPath();ctx.arc(pos[0],pos[1],12,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(pos[0],pos[1],8,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=sel.color;ctx.beginPath();ctx.arc(pos[0],pos[1],6,0,Math.PI*2);ctx.fill();
+  }
+}
+
+function animLoop(ts){
+  if(!animState.startTime)animState.startTime=ts;
+  const t=Math.min((ts-animState.startTime)/animState.duration,1);
+  const eased=t<0.5?2*t*t:-1+(4-2*t)*t;
+  draw(eased);
+  const pct=Math.round(t*100);
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-label').textContent=pct+'%';
+  if(t<1){animState.rafId=requestAnimationFrame(animLoop);}
+  else{
+    draw(1);
+    document.getElementById('progress-fill').style.width='100%';
+    document.getElementById('progress-label').textContent='Arrived!';
+    const sb=document.getElementById('start-btn');
+    sb.innerHTML='<i class="ti ti-check"></i>Arrived';sb.style.background='#0a5c45';
+    animState.running=false;
+    setTimeout(()=>{
+      document.getElementById('progress-wrap').classList.remove('visible');
+      sb.innerHTML='<i class="ti ti-navigation"></i>Start route';sb.style.background='#0F6E56';
+      draw(0);
+    },2000);
+  }
+}
+
+function revealRoutes(){
+  state.routesFound=true;
+  document.getElementById('empty-hint').style.display='none';
+  document.getElementById('legend-card').classList.add('visible');
+  document.getElementById('results-section').classList.add('visible');
+  document.getElementById('start-btn').classList.add('visible');
+  updateScores();
+  // Animate routes drawing in
+  let t=0;
+  const drawIn=()=>{t=Math.min(t+0.04,1);draw(0);if(t<1)requestAnimationFrame(drawIn);else draw(0);};
+  requestAnimationFrame(drawIn);
+}
+
+document.getElementById('go-btn').addEventListener('click',()=>{
+  const btn=document.getElementById('go-btn');
+  btn.classList.add('loading');
+  btn.innerHTML='<i class="ti ti-loader-2" aria-hidden="true"></i>Finding…';
+  setTimeout(()=>{
+    btn.classList.remove('loading');
+    btn.innerHTML='<i class="ti ti-search" aria-hidden="true"></i>Find routes';
+    revealRoutes();
+  },1000);
+});
+
+document.getElementById('start-btn').addEventListener('click',()=>{
+  if(animState.running)return;
+  animState.running=true;animState.startTime=null;
+  document.getElementById('progress-wrap').classList.add('visible');
+  document.getElementById('progress-fill').style.width='0%';
+  document.getElementById('progress-label').textContent='0%';
+  const sb=document.getElementById('start-btn');
+  sb.innerHTML='<i class="ti ti-navigation"></i>Navigating…';
+  animState.rafId=requestAnimationFrame(animLoop);
+});
+
+document.getElementById('pref-group').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-pref]');if(!btn)return;
+  document.querySelectorAll('.pref-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');state.pref=btn.dataset.pref;
+  if(state.pref==='fast')state.selectedRoute=2;
+  else if(state.pref==='balanced')state.selectedRoute=1;
+  else state.selectedRoute=0;
+  if(state.routesFound){updateScores();draw(0);}
+});
+
+['crime','lights'].forEach(k=>{
+  document.getElementById('tog-'+k).addEventListener('click',function(){
+    this.classList.toggle('on');
+    if(k==='crime')state.showCrime=this.classList.contains('on');
+    else state.showLights=this.classList.contains('on');
+    if(state.routesFound)draw(0);
+  });
+});
+
+function updateScores(){
+  const sel=routes[state.selectedRoute];
+  document.getElementById('stat-score').textContent=getScore(sel);
+  document.getElementById('stat-time').textContent=sel.time;
+  document.getElementById('stat-dist').textContent=sel.dist;
+  document.getElementById('explain-heading').textContent='Why "'+sel.name+'" scored highest';
+  document.getElementById('exp-crime').textContent=sel.crime;
+  document.getElementById('exp-walk').textContent=sel.walk;
+  document.getElementById('exp-light').textContent=sel.light;
+  document.getElementById('badge-crime').textContent=sel.crimeBadge;
+  document.getElementById('badge-walk').textContent=sel.walkBadge;
+  document.getElementById('badge-light').textContent=sel.lightBadge;
+  document.getElementById('badge-crime').style.cssText=sel.crimeStyle;
+  document.getElementById('badge-walk').style.cssText=sel.walkStyle;
+  document.getElementById('badge-light').style.cssText=sel.lightStyle;
+}
+
+const ro=new ResizeObserver(()=>resize());
+ro.observe(canvas.parentElement);
+resize();
+</script>

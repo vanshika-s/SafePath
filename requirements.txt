@@ -1,0 +1,16 @@
+streamlit==1.41.0
+streamlit-folium
+streamlit-searchbox
+requests
+pandas
+folium
+geopandas
+osmnx
+numpy
+scipy
+astral
+python-dateutil
+geopy
+networkx
+fastapi
+uvicorn
