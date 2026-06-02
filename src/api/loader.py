@@ -51,37 +51,30 @@ def load_graph():
 
 
 def load_crime_points() -> dict:
-    """Load and split crime points by hour into day/night buckets.
-
-    The GeoDataFrame is cached globally after first load. The day/night split
-    is recomputed each call so it stays correct as sunrise/sunset changes.
-    """
     global _crime
+    if _crime is not None:
+        return _crime
+
     from datetime import datetime
+    from zoneinfo import ZoneInfo
     from astral import LocationInfo
     from astral.sun import sun
-    from dateutil import tz
 
-    local_tz  = tz.tzlocal()
+    _sd_tz    = ZoneInfo("America/Los_Angeles")
+    _now      = datetime.now(_sd_tz)
     _s        = sun(LocationInfo(latitude=32.8801, longitude=-117.234).observer,
-                    date=datetime.now(local_tz), tzinfo=local_tz)
+                    date=_now.date(), tzinfo=_sd_tz)
     dawn_hour = _s["dawn"].hour + _s["dawn"].minute / 60
     dusk_hour = _s["dusk"].hour + _s["dusk"].minute / 60
 
-    if _crime is None:
-        gdf        = gpd.read_file(_CRIME_PATH)
-        _crime     = {
-            "hours": gdf["HOUR"].values,
-            "lats":  gdf.geometry.y.values,
-            "lngs":  gdf.geometry.x.values,
-        }
+    gdf      = gpd.read_file(_CRIME_PATH)
+    hours    = gdf["HOUR"].values
+    day_mask = ((hours >= dawn_hour) & (hours < dusk_hour))
+    lats     = gdf.geometry.y.values
+    lngs     = gdf.geometry.x.values
 
-    hours    = _crime["hours"]
-    lats     = _crime["lats"]
-    lngs     = _crime["lngs"]
-    day_mask = (hours >= dawn_hour) & (hours < dusk_hour)
-
-    return {
+    _crime = {
         "day":   [(float(la), float(lo)) for la, lo in zip(lats[day_mask],  lngs[day_mask])],
         "night": [(float(la), float(lo)) for la, lo in zip(lats[~day_mask], lngs[~day_mask])],
     }
+    return _crime
